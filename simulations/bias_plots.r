@@ -3,7 +3,7 @@ rm(list = ls())
 library(ggplot2)
 library(magrittr)
 
-load("playground/simulations/bias.rda")
+load("simulations/bias2.rda")
 
 # Reshaping
 bias_vars <- paste0(c("psi0", "psi1", "mu0", "mu1", "Pi"), "_bias")
@@ -22,7 +22,7 @@ sizelvls <- levels(bias$size_tag)
 for (i in 1:4) {
   # Clearing plot space and creating the pdf
   
-  pdf(sprintf("playground/simulations/bias_trees_of_size_%s.pdf", sizelvls[i]))
+  pdf(sprintf("simulations/bias_trees_of_size_%s2.pdf", sizelvls[i]))
   
   # Nobservations in this group
   nobs <- bias %>% dplyr::filter(as.integer(size_tag) == i) %>%

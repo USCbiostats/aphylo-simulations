@@ -2,3 +2,4 @@
 *.rout
 *.rda
 *.RData
+.Rproj.user
