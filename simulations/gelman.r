@@ -38,39 +38,39 @@ get_gelman <- function(x, obj) {
 
 
 # Checkingout Right prior estimates --------------------------------------------
-load("playground/simulations/mcmc_right_prior_estimates.rda")
+load("simulations/mcmc_right_prior_estimates.rda")
 
 # Extracting the data
 N <- length(ans_MCMC_right_prior)
 gelmans <- do.call(rbind, lapply(1:N, get_gelman, obj = ans_MCMC_right_prior))
 
 # Saving the data
-save(gelmans, file = "playground/simulations/gelmans_right_prior.rda")
+save(gelmans, file = "simulations/gelmans_right_prior.rda")
 
 graphics.off()
-pdf("playground/simulations/gelmans_right_prior.pdf")
+pdf("simulations/gelmans_right_prior.pdf")
 oldpar <- par(no.readonly = TRUE)
 par(mar = par("mar")*c(2, 1, 1, 1))
-boxplot(gelmans, las = 2, main = "Distribution of\nGelman Statistics (right prior)")
+boxplot(gelmans, las = 2)#, main = "Distribution of\nGelman Statistics (right prior)")
 par(oldpar)
 dev.off()
 
 
 # Checkingout Right prior estimates --------------------------------------------
-load("playground/simulations/mcmc_wrong_prior_estimates.rda")
+load("simulations/mcmc_wrong_prior_estimates.rda")
 
 # Extracting the data
 N <- length(ans_MCMC_right_prior)
 gelmans <- do.call(rbind, lapply(1:N, get_gelman, obj = ans_MCMC_wrong_prior))
 
 # Saving the data
-save(gelmans, file = "playground/simulations/gelmans_wrong_prior.rda")
+save(gelmans, file = "simulations/gelmans_wrong_prior.rda")
 
 graphics.off()
-pdf("playground/simulations/gelmans_wrong_prior.pdf")
+pdf("simulations/gelmans_wrong_prior.pdf")
 oldpar <- par(no.readonly = TRUE)
 par(mar = par("mar")*c(2, 1, 1, 1))
-boxplot(gelmans, las = 2, main = "Distribution of\nGelman Statistics (wrong prior)")
+boxplot(gelmans, las = 2)#, main = "Distribution of\nGelman Statistics (wrong prior)")
 par(oldpar)
 dev.off()
 

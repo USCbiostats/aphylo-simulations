@@ -117,25 +117,25 @@ interval_tags <- function(x, marks) {
 
 # Computing bias ---------------------------------------------------------------
 bias_MLE <- bias_calc("simulations/mle_estimates.rda", "ans_MLE")
-bias_MLE2 <- bias_calc("simulations/mle_estimates2.rda", "ans_MLE")
-bias_MAP <- bias_calc("simulations/map_estimates.rda", "ans_MAP")
-bias_MAP_wrong <- bias_calc("simulations/map_wrong_prior_estimates.rda", "ans_MAP_wrong_prior")
+# bias_MLE2 <- bias_calc("simulations/mle_estimates2.rda", "ans_MLE")
+# bias_MAP <- bias_calc("simulations/map_estimates.rda", "ans_MAP")
+# bias_MAP_wrong <- bias_calc("simulations/map_wrong_prior_estimates.rda", "ans_MAP_wrong_prior")
 bias_MCMC_right <- bias_calc("simulations/mcmc_right_prior_estimates.rda", "ans_MCMC_right_prior")
 bias_MCMC_wrong <- bias_calc("simulations/mcmc_wrong_prior_estimates.rda", "ans_MCMC_wrong_prior")
 
 # Checking solved solutions
-common_solutions <- intersect(bias_MLE[,"index"], bias_MCMC_right[,"index"])
-common_solutions <- intersect(common_solutions, bias_MAP_wrong[,"index"])
+common_solutions <- bias_MLE[,"index"]
+# common_solutions <- intersect(common_solutions, bias_MAP_wrong[,"index"])
 common_solutions <- intersect(common_solutions, bias_MCMC_right[,"index"])
 common_solutions <- intersect(common_solutions, bias_MCMC_wrong[,"index"])
 
 bias <- rbind(
   data.frame(Method = "MLE", bias_MLE),
-  data.frame(Method = "MLE2", bias_MLE2)
+  # data.frame(Method = "MLE2", bias_MLE2)
   # data.frame(Method = "MAP", bias_MAP),
   # data.frame(Method = "MAP wrong", bias_MAP_wrong),
-  # data.frame(Method = "MCMC wrong", bias_MCMC_wrong),
-  # data.frame(Method = "MCMC", bias_MCMC_right)
+  data.frame(Method = "MCMC wrong", bias_MCMC_wrong),
+  data.frame(Method = "MCMC", bias_MCMC_right)
 )
 
 # Categorial variables ---------------------------------------------------------

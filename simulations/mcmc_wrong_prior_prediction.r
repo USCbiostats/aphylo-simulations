@@ -3,9 +3,9 @@ rm(list = ls())
 library(aphylo)
 
 load("simulations/data_and_functions.rda")
-load("simulations/mcmc_right_prior_estimates.rda")
+load("simulations/mcmc_wrong_prior_estimates.rda")
 
-N <- length(ans_MCMC_right_prior)
+N <- length(ans_MCMC_wrong_prior)
 
 library(parallel)
 
@@ -22,12 +22,12 @@ cl <- makeForkCluster(10)
 
 # Prediction scores
 pred_scores <- parLapply(cl, 1:N , function(i) { 
-  try(prediction_score(ans_MCMC_right_prior[[i]], expected = dat[[i]]$annotations,
+  try(prediction_score(ans_MCMC_wrong_prior[[i]], expected = dat[[i]]$annotations,
                        alpha = prop_of_1s))
 })
 
 stopCluster(cl)
-save(pred_scores, file = "simulations/mcmc_right_prior_prediction.rda")
+save(pred_scores, file = "simulations/mcmc_wrong_prior_prediction.rda")
 
 ans <- lapply(pred_scores, function(x) {
   tryCatch(cbind(obs = x[["obs"]], rand = x[["random"]]) / x[["worse"]], error = function(e) NULL)
@@ -38,13 +38,14 @@ dimnames(ans) <- list(NULL, c("Model Predictions", "Random Predictions"))
 
 
 graphics.off()
-pdf("simulations/mcmc_right_prior_prediction.pdf")
-# png("simulations/mcmc_right_prior_prediction.png")
-boxplot(ans, #main = "Distribution Relative\nPrediction Scores",
+pdf("simulations/mcmc_wrong_prior_prediction.pdf")
+# png("simulations/mcmc_wrong_prior_prediction.png")
+boxplot(ans, main = "", # Distribution Relative\nPrediction Scores
         ylab = "Relative Prediction Score (0 is perfect prediction)",
         sub  = sprintf(
-          "Random annotations based on a Bernoulli(%.2f)",
-          prop_of_1s),
-        ylim = c(0,.6),outline = FALSE, notch=FALSE
+        "Random annotations based on a Bernoulli(%.2f)",
+        prop_of_1s),
+        ylim = c(0,.6),
+        outline = FALSE, notch=FALSE
 )
 dev.off()

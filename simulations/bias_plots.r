@@ -3,7 +3,7 @@ rm(list = ls())
 library(ggplot2)
 library(magrittr)
 
-load("simulations/bias2.rda")
+load("simulations/bias.rda")
 
 # Reshaping
 bias_vars <- paste0(c("psi0", "psi1", "mu0", "mu1", "Pi"), "_bias")
@@ -15,6 +15,10 @@ bias <- do.call(rbind, lapply(bias_vars, function(x) {
 }
 ))
 
+levels(bias$parameter) <- gsub("_bias", "",levels(bias$parameter))
+
+bias$mcolor <- (1:3)[factor(bias$Method)]
+
 #+ plotting, echo=TRUE
 # Plot -------------------------------------------------------------------------
 graphics.off()
@@ -22,7 +26,7 @@ sizelvls <- levels(bias$size_tag)
 for (i in 1:4) {
   # Clearing plot space and creating the pdf
   
-  pdf(sprintf("simulations/bias_trees_of_size_%s2.pdf", sizelvls[i]))
+  pdf(sprintf("simulations/bias_trees_of_size_%s.pdf", sizelvls[i]))
   
   # Nobservations in this group
   nobs <- bias %>% dplyr::filter(as.integer(size_tag) == i) %>%
@@ -43,7 +47,7 @@ for (i in 1:4) {
       subtitle = sprintf("# of observations: %i", nobs)
     ) +
     
-    ylim(-.75,.75)
+    ylim(-.75,.75) + ylab("Bias") + xlab("")
   
   # Printing it on screen (need to do that explicitly on a loop)
   print(p)
