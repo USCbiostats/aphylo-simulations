@@ -1,5 +1,7 @@
 rm(list = ls())
 
+library(dplyr)
+library(tidyr)
 library(ggplot2)
 library(magrittr)
 
@@ -8,12 +10,31 @@ load("simulations/bias.rda")
 # Reshaping
 bias_vars <- paste0(c("psi0", "psi1", "mu0", "mu1", "Pi"), "_bias")
 info_vars <- c("index", "Method", "size_tag", "miss_tag", "PropLeafs_tag")
-bias <- do.call(rbind, lapply(bias_vars, function(x) {
+bias2 <- do.call(rbind, lapply(bias_vars, function(x) {
   ans <- data.frame(parameter = x, bias[,c(info_vars, x),drop=FALSE])
   colnames(ans)[7] <- "bias"
   ans
 }
 ))
+
+bias_long <- select(
+  bias, index, Method, size_tag, miss_tag, PropLeafs_tag,
+  matches("_bias$")
+  ) %>%
+  as_tibble %>%
+  gather(
+    key = "parameter",
+    value = "bias",
+    which(grepl("(?<=bias)$", colnames(.), perl = TRUE))
+    ) %>%
+  mutate(parameter = gsub("_.+", "", parameter))
+
+
+
+bias %>% group_by()
+  mutate(
+    pcoverage
+  )
 
 levels(bias$parameter) <- gsub("_bias", "",levels(bias$parameter))
 
@@ -47,7 +68,7 @@ for (i in 1:4) {
       subtitle = sprintf("# of observations: %i", nobs)
     ) +
     
-    ylim(-.75,.75) + ylab("Bias") + xlab("")
+    ylim(-.2,.2) + ylab("Bias") + xlab("")
   
   # Printing it on screen (need to do that explicitly on a loop)
   print(p)
@@ -56,6 +77,22 @@ for (i in 1:4) {
   dev.off()
   
 }
+
+library(dplyr)
+library(magrittr)
+library(tidyr)
+
+bias_tibble <- as_tibble(bias)
+
+bias_table <- bias_tibble %>%
+  group_by(parameter, Method, size_tag) %>%
+  summarize(
+    Lower = quantile(bias, .025),
+    Avg   = mean(bias),
+    upper = quantile(bias, .975)
+  )
+
+bias_table %>% 
 
 # Computing table of biases
 bias_mat <- with(bias, array(

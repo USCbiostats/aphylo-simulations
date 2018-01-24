@@ -15,6 +15,13 @@ load("simulations/data_and_functions.rda")
 library(ggplot2)
 library(magrittr)
 
+coverage <- function(x, par0, pcent) {
+  quant <- do.call(rbind, x$hist)
+  quant <- apply(quant, 2, quantile, c(pcent/2, 1 - pcent/2))
+  
+  (par0 >= quant[1, ]) & (par0 <= quant[2, ])
+}
+
 # Function to measure bias
 bias_calci <- function(x, par0, tree) {
 
@@ -28,7 +35,8 @@ bias_calci <- function(x, par0, tree) {
     "Missings",
     cnames,
     paste(cnames, "bias", sep="_"),
-    paste(cnames, "var", sep="_")
+    paste(cnames, "var", sep="_"),
+    paste(cnames, "covered95", sep="_")
   )
   
   # Checking if it was able to solve it or not
@@ -36,8 +44,8 @@ bias_calci <- function(x, par0, tree) {
     return(structure(rep(NA, length(cnames)), names = cnames))
 
   # Number of offspring and internal nodes
-  treesize <- length(tree$noffspring)
-  nleafs   <- sum(tree$noffspring > 0)
+  treesize <- length(tree$offspring)
+  nleafs   <- nrow(tree$tip.annotation)
 
   vrs <- diag(x$varcovar)
   if (length(vrs) == 4)
@@ -50,7 +58,8 @@ bias_calci <- function(x, par0, tree) {
       par0[6],
       x$par,
       x$par - par0[1:5],
-      vrs
+      vrs,
+      coverage(x, par0[-6], .05)
       ),
     names = cnames
     )
@@ -116,7 +125,7 @@ interval_tags <- function(x, marks) {
 
 
 # Computing bias ---------------------------------------------------------------
-bias_MLE <- bias_calc("simulations/mle_estimates.rda", "ans_MLE")
+# bias_MLE <- bias_calc("simulations/mle_estimates.rda", "ans_MLE")
 # bias_MLE2 <- bias_calc("simulations/mle_estimates2.rda", "ans_MLE")
 # bias_MAP <- bias_calc("simulations/map_estimates.rda", "ans_MAP")
 # bias_MAP_wrong <- bias_calc("simulations/map_wrong_prior_estimates.rda", "ans_MAP_wrong_prior")
@@ -124,18 +133,18 @@ bias_MCMC_right <- bias_calc("simulations/mcmc_right_prior_estimates.rda", "ans_
 bias_MCMC_wrong <- bias_calc("simulations/mcmc_wrong_prior_estimates.rda", "ans_MCMC_wrong_prior")
 
 # Checking solved solutions
-common_solutions <- bias_MLE[,"index"]
+# common_solutions <- bias_MLE[,"index"]
 # common_solutions <- intersect(common_solutions, bias_MAP_wrong[,"index"])
-common_solutions <- intersect(common_solutions, bias_MCMC_right[,"index"])
-common_solutions <- intersect(common_solutions, bias_MCMC_wrong[,"index"])
+# common_solutions <- intersect(common_solutions, bias_MCMC_right[,"index"])
+# common_solutions <- intersect(common_solutions, bias_MCMC_wrong[,"index"])
 
 bias <- rbind(
-  data.frame(Method = "MLE", bias_MLE),
+  # data.frame(Method = "MLE", bias_MLE),
   # data.frame(Method = "MLE2", bias_MLE2)
   # data.frame(Method = "MAP", bias_MAP),
   # data.frame(Method = "MAP wrong", bias_MAP_wrong),
-  data.frame(Method = "MCMC wrong", bias_MCMC_wrong),
-  data.frame(Method = "MCMC", bias_MCMC_right)
+  data.frame(Prior = "Wrong", bias_MCMC_wrong),
+  data.frame(Prior = "Right", bias_MCMC_right)
 )
 
 # Categorial variables ---------------------------------------------------------
@@ -150,6 +159,6 @@ bias$size_tag <- interval_tags(bias$TreeSize, quantile(bias$TreeSize, na.rm = TR
 bias$PropLeafs <- with(bias, NLeafs/TreeSize)
 bias$PropLeafs_tag <- interval_tags(bias$PropLeafs, quantile(bias$PropLeafs, na.rm=TRUE))
 
-save(bias, file = "simulations/bias2.rda")
+save(bias, file = "simulations/bias.rda")
 
 

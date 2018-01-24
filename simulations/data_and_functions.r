@@ -4,7 +4,17 @@ library(aphylo)
 library(coda)
 
 # Number of simulations (samples) to draw
-nsim <- 13096
+nsim   <- 13096
+
+#' Probability of dropping 0s w/r to dropping 1s. This is passed to the function
+#' `rdrop_annotations` and generates the observed data.
+pdrop0 <- 99/100
+
+mcmc.nbatch  <- 2e4
+mcmc.burnin  <- 5e3
+mcmc.thin    <- 20
+mcmc.nchains <- 4
+
 
 # Function to draw parameters:
 # This creates 5 + 1 parameters, namely
@@ -16,7 +26,7 @@ nsim <- 13096
 #  - % of missings
 draw_par <- function() {
   structure(
-    c(rbeta(5, 1, 20), runif(1, .1, .5)),
+    c(rbeta(2, 1, 39), rbeta(3, 1, 19), runif(1, .1, .5)),
     names = c("psi0", "psi1", "mu0", "mu1", "Pi", "missing")
     )
 }
@@ -27,19 +37,19 @@ read_and_sim <- function(fn, p) {
   dat <- ape::read.tree(fn, nmax=1)
   
   # Simulating
-  sim_annotated_tree(
+  try(sim_annotated_tree(
     tree = dat$edge,
     psi = p[1:2],
     mu  = p[3:4],
     Pi  = p[5]
-    )
+    ))
 }
 
 # Function to estimate model using mle
-mle_lite <- function(dat, abc, priors = NULL) {
+mle_lite <- function(par, dat, abc, priors = NULL) {
   # Try to estimate the model
-  ans <- if (abc) tryCatch(phylo_mle(dat, method="ABC", priors=priors), error = function(e) e)
-    else tryCatch(phylo_mle(dat, priors = priors), error = function(e) e)
+  ans <- if (abc) tryCatch(aphylo_mle(dat, method="ABC", priors=priors, par = par), error = function(e) e)
+    else tryCatch(aphylo_mle(dat, priors = priors, par = par), error = function(e) e)
   
   
   # If it didn't worked, then return error
@@ -50,10 +60,18 @@ mle_lite <- function(dat, abc, priors = NULL) {
 }
 
 # Function to estimate model using MCMC
-mcmc_lite <- function(dat, par, nbatch = 1e4L, nchains = 4L, burnin=1e3, thin=20, priors = NULL) {
+mcmc_lite <- function(
+  dat,
+  par,
+  priors  = NULL,
+  nbatch  = mcmc.nbatch,
+  nchains = mcmc.nchains,
+  burnin  = mcmc.burnin,
+  thin    = mcmc.thin
+  ) {
   
   # Try to estimate the model
-  ans <- tryCatch(phylo_mcmc(
+  ans <- tryCatch(aphylo_mcmc(
     par, dat,
     control = list(nbatch = nbatch, nchains=nchains, burnin = burnin, thin=thin),
     priors = priors
@@ -85,13 +103,18 @@ sample_files <- sample(tree_files, nsim)
 parameters   <- lapply(1:nsim, function(x) draw_par())
 
 dat          <- Map(function(fn, p) read_and_sim(fn, p), fn = sample_files, p = parameters)
-dat_obs      <- Map(function(d, p) drop_data(d, p[["missing"]]), d = dat, p = parameters)
+dat_obs      <- Map(function(d, p) {
+  d$node.annotation[] <- 9L
+  rdrop_annotations(d, pcent = p[["missing"]], prob.drop.0 = pdrop0)
+  }, d = dat, p = parameters)
 
-x <- lapply(dat, "[[", "annotations")
-x <- lapply(x, table)
-x <- lapply(x, names)
-table(unlist(x))
+x <- lapply(dat_obs, "[[", "tip.annotation")
+x <- lapply(x, aphylo:::fast_table_using_labels, ids = c(0L, 1L, 9L))
+x <- t(do.call(cbind, x))
+x <- x/rowSums(x)
+boxplot(x)
 
-save.image("playground/simulations/data_and_functions.rda")
+rm(x)
+save.image("simulations/data_and_functions.rda", compress = FALSE)
 
 
