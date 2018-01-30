@@ -1,9 +1,9 @@
 rm(list = ls())
 library(aphylo)
-load("simulations/02-gold-standard/data_and_functions.rda")
+load("simulations/03_uniform_drop_of_0/data_and_functions.rda")
 
-if (file.exists("simulations/02-gold-standard/mcmc_wrong_prior_estimates.rda")) {
-  load("simulations/02-gold-standard/mcmc_wrong_prior_estimates.rda")
+if (file.exists("simulations/03_uniform_drop_of_0/mcmc_wrong_prior_estimates.rda")) {
+  load("simulations/03_uniform_drop_of_0/mcmc_wrong_prior_estimates.rda")
   start <- i - 1L
   set.seed(curseed_MCMC_wrong_prior)
 } else {
@@ -35,7 +35,7 @@ for (i in 1:nsim) {
     # Storing all objects
     save(
       curseed_MCMC_wrong_prior, ans_MCMC_wrong_prior, i,
-      file = "simulations/02-gold-standard/mcmc_wrong_prior_estimates.rda",
+      file = "simulations/03_uniform_drop_of_0/mcmc_wrong_prior_estimates.rda",
       compress = FALSE
       )
   } else message(".", appendLF = FALSE)
@@ -47,6 +47,6 @@ message(sprintf("Simulation %04i/%04i (%6.2f %%) complete.", i, nsim, i/nsim*100
 
 curseed_MCMC_wrong_prior <- .Random.seed
 save(curseed_MCMC_wrong_prior, ans_MCMC_wrong_prior, i,
-     file = "simulations/02-gold-standard/mcmc_wrong_prior_estimates.rda",
+     file = "simulations/03_uniform_drop_of_0/mcmc_wrong_prior_estimates.rda",
      compress = FALSE
      )
