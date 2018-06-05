@@ -10,7 +10,7 @@
 knitr::opts_chunk$set(echo = FALSE)
 
 #+ data-loading, cache=TRUE
-load("simulations/data_and_functions.rda")
+load("simulations/03_uniform_drop_of_0/data_and_functions.rda")
 
 library(ggplot2)
 library(magrittr)
@@ -129,8 +129,8 @@ interval_tags <- function(x, marks) {
 # bias_MLE2 <- bias_calc("simulations/mle_estimates2.rda", "ans_MLE")
 # bias_MAP <- bias_calc("simulations/map_estimates.rda", "ans_MAP")
 # bias_MAP_wrong <- bias_calc("simulations/map_wrong_prior_estimates.rda", "ans_MAP_wrong_prior")
-bias_MCMC_right <- bias_calc("simulations/mcmc_right_prior_estimates.rda", "ans_MCMC_right_prior")
-bias_MCMC_wrong <- bias_calc("simulations/mcmc_wrong_prior_estimates.rda", "ans_MCMC_wrong_prior")
+bias_MCMC_right <- bias_calc("simulations/03_uniform_drop_of_0/mcmc_right_prior_estimates.rda", "ans_MCMC_right_prior")
+bias_MCMC_wrong <- bias_calc("simulations/03_uniform_drop_of_0/mcmc_wrong_prior_estimates.rda", "ans_MCMC_wrong_prior")
 
 # Checking solved solutions
 # common_solutions <- bias_MLE[,"index"]
@@ -159,6 +159,6 @@ bias$size_tag <- interval_tags(bias$TreeSize, quantile(bias$TreeSize, na.rm = TR
 bias$PropLeafs <- with(bias, NLeafs/TreeSize)
 bias$PropLeafs_tag <- interval_tags(bias$PropLeafs, quantile(bias$PropLeafs, na.rm=TRUE))
 
-save(bias, file = "simulations/bias.rda")
+save(bias, file = "simulations/03_uniform_drop_of_0/bias.rda")
 
 
