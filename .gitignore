@@ -1,6 +1,10 @@
 *.Rout
 *.rout
 *.rda
+*.rds
 *.RData
 .Rproj.user
 *.Rhistory
+
+_rslurm*
+

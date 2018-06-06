@@ -97,6 +97,15 @@ dat <- replicate(5e3, {
   sim_annotations_panther(sim_tree(50))
 }, simplify = FALSE)
 
+
+# Saving
+saveRDS(
+  dat,
+  paste0(Sys.getenv("RPROJECT"), "/simulations/dgp.rds"),
+  compress=FALSE
+)
+
+
 # Retrieving parameters
 parameters <- do.call(rbind, lapply(dat, "[[", "par"))
 op <- par(mfrow = c(4, 2), mar = c(3, 3, 1, 1))
