@@ -101,7 +101,7 @@ dat <- replicate(5e3, {
 # Saving
 saveRDS(
   dat,
-  sprintf("%s/simulations/dgp%2i.rds", Sys.getenv("RPROJECT"), Sys.getenv("SLURM_ARRAY_TASK_ID")),
+  sprintf("%s/simulations/dgp%s.rds", Sys.getenv("RPROJECT"), Sys.getenv("SLURM_ARRAY_TASK_ID")),
   compress=FALSE
 )
 
