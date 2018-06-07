@@ -101,16 +101,16 @@ dat <- replicate(5e3, {
 # Saving
 saveRDS(
   dat,
-  sprintf("%s/simulations/dgp%2i.rds", Sys.getenv("RPROJECT"), Sys.getenv("SLURM_ARRAY_TASK_ID")),
+  sprintf("%s/simulations/dgp%2i.rds", Sys.getenv("RPROJECT"), Sys.getenv("SLURM_TASK_PID")),
   compress=FALSE
 )
 
 
 cat(
   sprintf(
-    "SLURM_ARRAY_TASK_COUNT:%s\nSLURM_ARRAY_TASK_ID:%s\nSLURM_ARRAY_TASK_MAX:%s\nSLURM_ARRAY_TASK_MIN:%s\nSLURM_ARRAY_TASK_STEP:%s\nSLURM_ARRAY_JOB_ID:%s\n
+    "SLURM_TASK_PID:%s\nSLURM_ARRAY_TASK_ID:%s\nSLURM_ARRAY_TASK_MAX:%s\nSLURM_ARRAY_TASK_MIN:%s\nSLURM_ARRAY_TASK_STEP:%s\nSLURM_ARRAY_JOB_ID:%s\n
     ",
-    Sys.getenv("SLURM_ARRAY_TASK_COUNT"),
+    Sys.getenv("SLURM_TASK_PID"),
     Sys.getenv("SLURM_ARRAY_TASK_ID"),
     Sys.getenv("SLURM_ARRAY_TASK_MAX"),
     Sys.getenv("SLURM_ARRAY_TASK_MIN"),
