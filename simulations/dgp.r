@@ -101,10 +101,24 @@ dat <- replicate(5e3, {
 # Saving
 saveRDS(
   dat,
-  paste0(Sys.getenv("RPROJECT"), "/simulations/dgp.rds"),
+  sprintf("%s/simulations/dgp%2i.rds", Sys.getenv("RPROJECT"), Sys.getenv("SLURM_ARRAY_TASK_ID")),
   compress=FALSE
 )
 
+
+cat(
+  sprintf(
+    "SLURM_ARRAY_TASK_COUNT:%s\nSLURM_ARRAY_TASK_ID:%s\nSLURM_ARRAY_TASK_MAX:%s\nSLURM_ARRAY_TASK_MIN:%s\nSLURM_ARRAY_TASK_STEP:%s\nSLURM_ARRAY_JOB_ID:%s\n
+    ",
+    Sys.getenv("SLURM_ARRAY_TASK_COUNT"),
+    Sys.getenv("SLURM_ARRAY_TASK_ID"),
+    Sys.getenv("SLURM_ARRAY_TASK_MAX"),
+    Sys.getenv("SLURM_ARRAY_TASK_MIN"),
+    Sys.getenv("SLURM_ARRAY_TASK_STEP"),
+    Sys.getenv("SLURM_ARRAY_JOB_ID")
+  ),
+  file = sprintf("%s/taks-%s.txt",Sys.getenv("RPROJECT"),Sys.getenv("SLURM_ARRAY_TASK_ID"))
+)
 
 # Retrieving parameters
 parameters <- do.call(rbind, lapply(dat, "[[", "par"))
