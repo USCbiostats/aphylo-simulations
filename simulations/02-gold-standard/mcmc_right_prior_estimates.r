@@ -22,7 +22,7 @@ job <- Slurm_lapply(
     mc.cores = 2L,
     nodes    = 20,
     job_name = "mcmc_right_prior",
-    job_path = "simulations/02-gold-standard/"
+    job_path = paste0(PROJECT_PATH, "/simulations/02-gold-standard/")
   )
 
 saveRDS(Slurm_collect(job), "simulations/02-gold-standard/mcmc_right_prior_estimates.rds")
