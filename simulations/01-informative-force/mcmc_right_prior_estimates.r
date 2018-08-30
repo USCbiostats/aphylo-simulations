@@ -1,22 +1,15 @@
 rm(list = ls())
 library(aphylo)
-load("simulations/data_and_functions.rda")
 
-if (file.exists("simulations/mcmc_right_prior_estimates.rda")) {
-  load("simulations/mcmc_right_prior_estimates.rda")
-  start <- i - 1L
-  set.seed(curseed_MCMC_right_prior)
-} else {
-  set.seed(1223)
-  ans_MCMC_right_prior <- vector("list", nsim)
-  start <- 1
-}
+load("simulations/functions.rda")
+
 
 # Priors and starting point
 mcmc.par   <- c(rep(1/40, 2), rep(1/20, 3))
 mcmc.prior <- function(p) {
   c(dbeta(p[1:2], 1, 39), dbeta(p[3:5], 1, 19))
 }
+
 
 for (i in start:nsim) {
   

@@ -19,10 +19,7 @@ library(aphylo)
 library(sluRm)
 
 # Path to the current panther dataset
-PANTHER_PATH <- "/auto/pmd-02/pdt/pdthomas/panther/famlib/rel/PANTHER13.1_altVersion/hmmscoring/PANTHER13.1/books"
-PROJECT_PATH <- "/home/rcf-proj2/pdt/vegayon/aphylo-simulations"
-
-NSAMPLES     <- 1e4
+source("simulations/00-global-parameters.r")
 
 # Data Generating Process Functions --------------------------------------------
 
@@ -51,8 +48,8 @@ sim_annotations_panther <- function(tree, par) {
   # Step 0: Model parameters
   par <- rbeta(
     7,
-    shape1 = c( 2, 2, 2, 2, 7,18, 2),
-    shape2 = c(18,18,18,18, 3, 2,18)
+    shape1 = ALPHA_PAR,
+    shape2 = BETA_PAR 
     )
   names(par)  <- c("psi0", "psi1", "mu0", "mu1", "eta0", "eta1", "Pi")
   par["drop"] <- runif(1, .1, .9)

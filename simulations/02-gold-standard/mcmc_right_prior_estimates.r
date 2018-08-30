@@ -1,56 +1,29 @@
-rm(list = ls())
 library(aphylo)
-load("simulations/02-gold-standard/data_and_functions.rda")
+library(sluRm)
 
-if (file.exists("simulations/02-gold-standard/mcmc_right_prior_estimates.rda")) {
-  load("simulations/02-gold-standard/mcmc_right_prior_estimates.rda")
-  start <- i - 1L
-  set.seed(curseed_MCMC_right_prior)
-} else {
-  set.seed(1223)
-  ans_MCMC_right_prior <- vector("list", nsim)
-  start <- 1
-}
+source("simulations/00-global-parameters.r")
+dat <- readRDS("simulations/dgp.rds")[1:50]
 
 # Priors and starting point
-mcmc.par   <- c(rep(1/40, 2), rep(1/20, 3))
+mcmc.par   <- c(0.1, 0.1, 0.1, 0.1, 0.7, 0.9, 0.1)
 mcmc.prior <- function(p) {
-  c(dbeta(p[1:2], 1, 39), dbeta(p[3:5], 1, 19))
+  dbeta(p, c(2, 2, 2, 2, 7, 18, 2), c(18, 18, 18, 18, 3, 2, 18))
 }
 
-for (i in start:nsim) {
-  
-  # MCMC estimators
-  ans_MCMC_right_prior[[i]] <- mcmc_lite(
-    dat    = dat_obs[[i]], 
-    par    = mcmc.par,
-    priors = mcmc.prior
-    )
-  
-  # Printing on screen (and saving)
-  if (!(i %% 10)) {
-    message(sprintf("Simulation %04i/%04i (%6.2f %%) complete.", i, nsim, i/nsim*100))
-    
-    # Just in case we need to restart this... so we can continue where we were
-    curseed_MCMC_right_prior <- .Random.seed
-    
-    # Storing all objects
-    save(
-      curseed_MCMC_right_prior, ans_MCMC_right_prior, i,
-      file     = "simulations/02-gold-standard/mcmc_right_prior_estimates.rda",
-      compress = FALSE
-      )
-    
-  } else message(".", appendLF = FALSE)
-   
-}
-
-# Terminating
-message(sprintf("Simulation %04i/%04i (%6.2f %%) complete.", i, nsim, i/nsim*100))
-
-curseed_MCMC_right_prior <- .Random.seed
-save(
-  curseed_MCMC_right_prior, ans_MCMC_right_prior, i,
-  file     = "simulations/02-gold-standard/mcmc_right_prior_estimates.rda",
-  compress = FALSE
+job <- Slurm_lapply(
+    dat,
+    mcmc_lite,
+    par     = mcmc.par,
+    priors  = mcmc.prior,
+    nbatch  = mcmc.nbatch,
+    nchains = mcmc.nchains,
+    burnin  = mcmc.burnin,
+    thin    = mcmc.thin,
+    mc.cores = 2L,
+    nodes    = 20,
+    job_name = "mcmc_right_prior",
+    path     = "simulations/02-gold-standard/"
   )
+
+saveRDS(Slurm_collect(job), "simulations/02-gold-standard/mcmc_right_prior_estimates.rds")
+
