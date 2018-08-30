@@ -16,6 +16,7 @@
 #' are doing what are supposed to do.
 
 library(aphylo)
+library(sluRm)
 
 # Path to the current panther dataset
 PANTHER_PATH <- "/auto/pmd-02/pdt/pdthomas/panther/famlib/rel/PANTHER13.1_altVersion/hmmscoring/PANTHER13.1/books"
@@ -104,12 +105,16 @@ PANTHER_FILES <- paste0(PANTHER_FILES, "/tree.tree")
 # Generating random data w/ trees of size 50
 set.seed(1)
 SAMPLED_TREE_FILES <- sample(PANTHER_FILES, NSAMPLES, TRUE)
-PANTHER_TREES      <- lapply(SAMPLED_TREE_FILES, read_panther)
+PANTHER_TREES      <- Slurm_lapply(SAMPLED_TREE_FILES, read_panther, job_path = PROJECT_PATH,
+  job_name = "reading_trees", nodes = 10)
+PANTHER_TREES      <- Slurm_collect(PANTHER_TREES)
 PANTHER_TREES      <- lapply(PANTHER_TREES, "[[", "tree")
 
 dat <- vector("list", NSAMPLES)
 for (i in seq_along(PANTHER_TREES))
-  dat[[i]] <- sim_annotations_panther(PANTHER_TREES[[i]])
+  dat[[i]] <- tryCatch(
+    sim_annotations_panther(PANTHER_TREES[[i]]),
+    error = function(e) e)
   
 # Saving
 saveRDS(
