@@ -27,7 +27,7 @@ mcmc_lite <- function(
   
   # Try to estimate the model
   ans <- tryCatch(aphylo_mcmc(
-    par, dat,
+    dat$atree ~ psi + mu + eta + Pi,
     control = list(nbatch = nbatch, nchains=nchains, burnin = burnin, thin=thin),
     priors = priors,
     check.informative = FALSE
