@@ -17,6 +17,12 @@
 
 library(aphylo)
 
+# Path to the current panther dataset
+PANTHER_PATH <- "/auto/pmd-02/pdt/pdthomas/panther/famlib/rel/PANTHER13.1_altVersion/hmmscoring/PANTHER13.1/books"
+PROJECT_PATH <- "/home/rcf-proj2/pdt/vegayon/aphylo-simulations"
+
+NSAMPLES     <- 1e4
+
 # Data Generating Process Functions --------------------------------------------
 
 # Mislabeling
@@ -91,33 +97,25 @@ sim_annotations_panther <- function(tree, par) {
 
 # Evaluation of the DGP --------------------------------------------------------
 
+# Listing panther trees
+PANTHER_FILES <- list.files(PANTHER_PATH, recursive=FALSE, full.names=TRUE)
+PANTHER_FILES <- paste0(PANTHER_FILES, "/tree.tree")
+
 # Generating random data w/ trees of size 50
 set.seed(1)
-dat <- replicate(5e3, {
-  sim_annotations_panther(sim_tree(50))
-}, simplify = FALSE)
+SAMPLED_TREE_FILES <- sample(PANTHER_FILES, NSAMPLES, TRUE)
+PANTHER_TREES      <- lapply(SAMPLED_TREE_FILES, read_panther)
+PANTHER_TREES      <- lapply(PANTHER_TREES, "[[", "tree")
 
-
+dat <- vector("list", NSAMPLES)
+for (i in seq_along(PANTHER_TREES))
+  dat[[i]] <- sim_annotations_panther(PANTHER_TREES[[i]])
+  
 # Saving
 saveRDS(
   dat,
-  sprintf("%s/simulations/dgp%s.rds", Sys.getenv("RPROJECT"), Sys.getenv("SLURM_ARRAY_TASK_ID")),
+  sprintf("%s/simulations/dgp.rds", PROJECT_PATH),
   compress=FALSE
-)
-
-
-cat(
-  sprintf(
-    "SLURM_TASK_PID:%s\nSLURM_ARRAY_TASK_ID:%s\nSLURM_ARRAY_TASK_MAX:%s\nSLURM_ARRAY_TASK_MIN:%s\nSLURM_ARRAY_TASK_STEP:%s\nSLURM_ARRAY_JOB_ID:%s\n
-    ",
-    Sys.getenv("SLURM_TASK_PID"),
-    Sys.getenv("SLURM_ARRAY_TASK_ID"),
-    Sys.getenv("SLURM_ARRAY_TASK_MAX"),
-    Sys.getenv("SLURM_ARRAY_TASK_MIN"),
-    Sys.getenv("SLURM_ARRAY_TASK_STEP"),
-    Sys.getenv("SLURM_ARRAY_JOB_ID")
-  ),
-  file = sprintf("%s/taks-%s.txt",Sys.getenv("RPROJECT"),Sys.getenv("SLURM_ARRAY_TASK_ID"))
 )
 
 # Retrieving parameters
