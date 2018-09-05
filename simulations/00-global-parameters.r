@@ -9,6 +9,7 @@ mcmc.nbatch  <- 2e4
 mcmc.burnin  <- 5e3
 mcmc.thin    <- 20
 mcmc.nchains <- 4
+mcmc.parallel <- FALSE
 
 # True DGP parameters
 ALPHA_PAR <- c( 2, 2, 2, 2, 7,18, 2)
@@ -22,13 +23,18 @@ mcmc_lite <- function(
   nbatch  = mcmc.nbatch,
   nchains = mcmc.nchains,
   burnin  = mcmc.burnin,
-  thin    = mcmc.thin
+  thin    = mcmc.thin,
+  parallel = mcmc.parallel
 ) {
+  
+  cl <- parallel::makeForkCluster(nchains)
   
   # Try to estimate the model
   ans <- tryCatch(aphylo_mcmc(
     dat$atree ~ psi + mu + eta + Pi,
-    control = list(nbatch = nbatch, nchains=nchains, burnin = burnin, thin=thin),
+    control = list(
+      nbatch = nbatch, nchains=nchains, cl = cl, burnin = burnin, thin=thin,
+      parallel = mcmc.parallel),
     priors = priors,
     check.informative = FALSE
   ),

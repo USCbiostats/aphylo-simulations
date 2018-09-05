@@ -21,6 +21,7 @@ job <- Slurm_lapply(
     thin     = mcmc.thin,
     njobs    = 10,
     mc.cores = 8L,
+    parallel = mcmc.parallel,
     job_name = "mcmc_right_prior",
     job_path = paste0(PROJECT_PATH, "/simulations/02-gold-standard/")
   )
