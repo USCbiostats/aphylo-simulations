@@ -2,7 +2,7 @@ library(aphylo)
 library(sluRm)
 
 source("simulations/00-global-parameters.r")
-dat <- readRDS("simulations/dgp.rds")[1:2000]
+dat <- readRDS("simulations/dgp.rds")[1:100]
 
 # Priors and starting point
 mcmc.par   <- c(0.1, 0.1, 0.1, 0.1, 0.7, 0.9, 0.1)
@@ -13,14 +13,14 @@ mcmc.prior <- function(p) {
 job <- Slurm_lapply(
     dat,
     mcmc_lite,
-    par     = mcmc.par,
-    priors  = mcmc.prior,
-    nbatch  = mcmc.nbatch,
-    nchains = mcmc.nchains,
-    burnin  = mcmc.burnin,
-    thin    = mcmc.thin,
-    mc.cores = 1L,
-    nodes    = 20,
+    par      = mcmc.par,
+    priors   = mcmc.prior,
+    nbatch   = mcmc.nbatch,
+    nchains  = mcmc.nchains,
+    burnin   = mcmc.burnin,
+    thin     = mcmc.thin,
+    njobs    = 10,
+    mc.cores = 8L,
     job_name = "mcmc_right_prior",
     job_path = paste0(PROJECT_PATH, "/simulations/02-gold-standard/")
   )
