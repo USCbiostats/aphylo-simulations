@@ -21,9 +21,10 @@ job <- Slurm_lapply(
     thin     = mcmc.thin,
     njobs    = 10,
     mc.cores = 8L,
-    parallel = mcmc.parallel,
-    job_name = "mcmc_right_prior",
-    job_path = paste0(PROJECT_PATH, "/simulations/02-gold-standard/")
+    multicore= mcmc.multicore,
+    job_name = "mcmc_right_prior2",
+    job_path = paste0(PROJECT_PATH, "/simulations/02-gold-standard/",
+    submit = TRUE)
   )
 
 saveRDS(Slurm_collect(job), "simulations/02-gold-standard/mcmc_right_prior_estimates.rds")
