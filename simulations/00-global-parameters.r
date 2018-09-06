@@ -31,6 +31,10 @@ mcmc_lite <- function(
   multicore = mcmc.multicore
 ) {
   
+  
+  .slurmARRAY_ID <- as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+  return(.slurmARRAY_ID)
+  
   # cl <- parallel::makeForkCluster(nchains)
   
   # Try to estimate the model
