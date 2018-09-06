@@ -1,6 +1,10 @@
 # Local paths
+STAGING_PATH <- "/staging/pdt/vegayon/aphylo-simulations"
 PANTHER_PATH <- "/auto/pmd-02/pdt/pdthomas/panther/famlib/rel/PANTHER13.1_altVersion/hmmscoring/PANTHER13.1/books"
 PROJECT_PATH <- "/home/rcf-proj2/pdt/vegayon/aphylo-simulations"
+
+if (!dir.exists(STAGING_PATH))
+  dir.create(STAGING_PATH)
 
 NSAMPLES     <- 1e4
 
@@ -8,7 +12,7 @@ NSAMPLES     <- 1e4
 mcmc.nbatch  <- 2e4
 mcmc.burnin  <- 5e3
 mcmc.thin    <- 20
-mcmc.nchains <- 4
+mcmc.nchains <- 2
 mcmc.multicore <- FALSE
 
 # True DGP parameters

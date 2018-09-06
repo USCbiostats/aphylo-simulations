@@ -19,13 +19,21 @@ job <- Slurm_lapply(
     nchains  = mcmc.nchains,
     burnin   = mcmc.burnin,
     thin     = mcmc.thin,
-    njobs    = 10,
-    mc.cores = 8L,
+    njobs    = 5,
+    mc.cores = 4L,
     multicore= mcmc.multicore,
     job_name = "mcmc_right_prior2",
-    job_path = paste0(PROJECT_PATH, "/simulations/02-gold-standard/"),
+    job_path = STAGING_PATH,
     submit = TRUE
   )
 
-saveRDS(Slurm_collect(job), "simulations/02-gold-standard/mcmc_right_prior_estimates.rds")
+saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-gold-standard/job.rds"))
+
+saveRDS(
+  Slurm_collect(job),
+  paste0(
+    PROJECT_PATH,
+    "/simulations/02-gold-standard/mcmc_right_prior_estimates.rds"
+    )
+  )
 
