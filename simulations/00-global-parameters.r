@@ -12,7 +12,7 @@ NSAMPLES     <- 1e4
 mcmc.nbatch  <- 2e4
 mcmc.burnin  <- 5e3
 mcmc.thin    <- 20
-mcmc.nchains <- 2
+mcmc.nchains <- 4
 mcmc.multicore <- FALSE
 
 # True DGP parameters
@@ -31,18 +31,18 @@ mcmc_lite <- function(
   multicore = mcmc.multicore
 ) {
   
-  
-  .slurmARRAY_ID <- as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))
-  return(.slurmARRAY_ID)
-  
-  # cl <- parallel::makeForkCluster(nchains)
-  
+ 
   # Try to estimate the model
   ans <- tryCatch(aphylo_mcmc(
     dat$atree ~ psi + mu + eta + Pi,
     control = list(
-      nbatch = nbatch, nchains=nchains, burnin = burnin, thin=thin,
-      multicore = multicore),
+      nbatch    = nbatch,
+      nchains   = nchains,
+      burnin    = burnin,
+      thin      = thin,
+      multicore = multicore
+    )
+    ,
     priors = priors,
     check.informative = FALSE
   ),

@@ -2,13 +2,16 @@ library(aphylo)
 library(sluRm)
 
 source("simulations/00-global-parameters.r")
-dat <- readRDS("simulations/dgp.rds")[1:100]
+dat <- readRDS("simulations/dgp.rds")
 
 # Priors and starting point
 mcmc.par   <- c(0.1, 0.1, 0.1, 0.1, 0.7, 0.9, 0.1)
 mcmc.prior <- function(p) {
   dbeta(p, c(2, 2, 2, 2, 7, 18, 2), c(18, 18, 18, 18, 3, 2, 18))
 }
+
+# Setting the seed
+set.seed(1)
 
 job <- Slurm_lapply(
     dat,
@@ -19,21 +22,24 @@ job <- Slurm_lapply(
     nchains  = mcmc.nchains,
     burnin   = mcmc.burnin,
     thin     = mcmc.thin,
-    njobs    = 5,
-    mc.cores = 4L,
-    multicore= mcmc.multicore,
-    job_name = "mcmc_right_prior2",
+    njobs    = 9,
+    mc.cores = 10L,
+    multicore= mcmc.multicore, # TRUE,
+    job_name = "mcmc_right_prior",
     job_path = STAGING_PATH,
-    submit = TRUE
+    submit = TRUE,
+    sbatch_opt = list(ntasks = 10, time="02:00:00", `cpus-per-task` = 1)
   )
 
 saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-gold-standard/job.rds"))
 
 saveRDS(
-  Slurm_collect(job),
+  res <- Slurm_collect(job),
   paste0(
     PROJECT_PATH,
     "/simulations/02-gold-standard/mcmc_right_prior_estimates.rds"
     )
   )
 
+res
+job
