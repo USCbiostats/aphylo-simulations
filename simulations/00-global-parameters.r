@@ -9,10 +9,10 @@ if (!dir.exists(STAGING_PATH))
 NSAMPLES     <- 1e4
 
 # MCMC
-mcmc.nbatch  <- 2e4
-mcmc.burnin  <- 5e3
-mcmc.thin    <- 20
-mcmc.nchains <- 4
+mcmc.nbatch    <- 2e4
+mcmc.burnin    <- 5e3
+mcmc.thin      <- 20
+mcmc.nchains   <- 4
 mcmc.multicore <- FALSE
 
 # True DGP parameters
@@ -23,11 +23,11 @@ BETA_PAR  <- c(18,18,18,18, 3, 2,18)
 mcmc_lite <- function(
   dat,
   par,
-  priors  = NULL,
-  nbatch  = mcmc.nbatch,
-  nchains = mcmc.nchains,
-  burnin  = mcmc.burnin,
-  thin    = mcmc.thin,
+  priors    = NULL,
+  nbatch    = mcmc.nbatch,
+  nchains   = mcmc.nchains,
+  burnin    = mcmc.burnin,
+  thin      = mcmc.thin,
   multicore = mcmc.multicore
 ) {
   

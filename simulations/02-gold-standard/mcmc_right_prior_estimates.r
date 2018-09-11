@@ -16,19 +16,23 @@ set.seed(1)
 job <- Slurm_lapply(
     dat,
     mcmc_lite,
-    par      = mcmc.par,
-    priors   = mcmc.prior,
-    nbatch   = mcmc.nbatch,
-    nchains  = mcmc.nchains,
-    burnin   = mcmc.burnin,
-    thin     = mcmc.thin,
-    njobs    = 9,
-    mc.cores = 10L,
-    multicore= mcmc.multicore, # TRUE,
-    job_name = "mcmc_right_prior",
-    job_path = STAGING_PATH,
-    submit = TRUE,
-    sbatch_opt = list(ntasks = 10, time="02:00:00", `cpus-per-task` = 1)
+    par        = mcmc.par,
+    priors     = mcmc.prior,
+    nbatch     = mcmc.nbatch,
+    nchains    = mcmc.nchains,
+    burnin     = mcmc.burnin,
+    thin       = mcmc.thin,
+    njobs      = 9,
+    mc.cores   = 10L,
+    multicore  = mcmc.multicore, # TRUE,
+    job_name   = "mcmc_right_prior",
+    job_path   = STAGING_PATH,
+    submit     = TRUE,
+    sbatch_opt = list(
+      ntasks          =  10,
+      time            = "02:00:00",
+      `cpus-per-task` = 1
+      )
   )
 
 saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-gold-standard/job.rds"))
