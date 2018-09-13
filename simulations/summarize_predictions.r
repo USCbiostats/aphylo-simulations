@@ -23,8 +23,7 @@ summarize_predictions <- function(x., dat., N) {
   message("Computing prediction scores...")
   structure(
     parallel::parLapply(cl, 1:N , function(i) { 
-      try(prediction_score(x.[[i]], expected = dat.[[i]]$annotations,
-                           alpha = prop_of_1s))
+      try(prediction_score(x.[[i]], expected = dat.[[i]]$annotations))
     }),
     prop_of_1s = prop_of_1s
   )

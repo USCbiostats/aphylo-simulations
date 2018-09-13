@@ -4,7 +4,7 @@ library(aphylo)
 
 
 dat <- readRDS("simulations/dgp.rds")
-ans_MCMC_right_prior <- readRDS("simulations/02-gold-standard/mcmc_right_prior_estimates.rds")
+ans_MCMC_right_prior <- readRDS("simulations/04-full-model/mcmc_right_prior_estimates.rds")
 
 source("simulations/summarize_predictions.r")
 
@@ -12,7 +12,7 @@ N <- length(ans_MCMC_right_prior)
 
 # Prediction scores
 pred_scores <- summarize_predictions(ans_MCMC_right_prior, dat, N)
-saveRDS(pred_scores, file = "simulations/02-gold-standard/mcmc_right_prior_prediction.rds", compress = FALSE)
+saveRDS(pred_scores, file = "simulations/04-full-model/mcmc_right_prior_prediction.rds", compress = FALSE)
 
 
 ans <- lapply(pred_scores, function(x) {
@@ -24,7 +24,7 @@ dimnames(ans) <- list(NULL, c("Model Predictions", "Random Predictions"))
 
 
 graphics.off()
-pdf("simulations/02-gold-standard/mcmc_right_prior_prediction.pdf")
+pdf("simulations/04-full-model/mcmc_right_prior_prediction.pdf")
 # png("simulations/mcmc_right_prior_prediction.png")
 boxplot(ans, #main = "Distribution Relative\nPrediction Scores",
         ylab = "Relative Prediction Score (0 is perfect prediction)",
