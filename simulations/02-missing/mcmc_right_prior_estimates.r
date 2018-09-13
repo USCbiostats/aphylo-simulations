@@ -14,7 +14,7 @@ mcmc.prior <- function(p) {
 set.seed(1)
 
 job <- Slurm_lapply(
-    lapply(dat, "[[", "atree"),
+    lapply(dat, "[[", "atree_i"),
     mcmc_lite,
     par        = mcmc.par,
     priors     = mcmc.prior,
@@ -25,7 +25,7 @@ job <- Slurm_lapply(
     njobs      = 9,
     mc.cores   = 10L,
     multicore  = mcmc.multicore, # TRUE,
-    job_name   = "mcmc_right_prior",
+    job_name   = "aphylo-02-missing",
     job_path   = STAGING_PATH,
     submit     = TRUE,
     sbatch_opt = list(
@@ -35,13 +35,13 @@ job <- Slurm_lapply(
       )
   )
 
-saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-gold-standard/job.rds"))
+saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-missing/right-prior-estimates-job.rds"))
 
 saveRDS(
   res <- Slurm_collect(job),
   paste0(
     PROJECT_PATH,
-    "/simulations/02-gold-standard/mcmc_right_prior_estimates.rds"
+    "/simulations/02-missing/mcmc_right_prior_estimates.rds"
     )
   )
 
