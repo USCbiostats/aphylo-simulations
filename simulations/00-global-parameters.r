@@ -22,6 +22,7 @@ BETA_PAR  <- c(18,18,18,18, 3, 2,18)
 # Function to estimate model using MCMC
 mcmc_lite <- function(
   dat,
+  model,
   par,
   priors    = NULL,
   nbatch    = mcmc.nbatch,
@@ -30,11 +31,10 @@ mcmc_lite <- function(
   thin      = mcmc.thin,
   multicore = mcmc.multicore
 ) {
-  
  
   # Try to estimate the model
   ans <- tryCatch(aphylo_mcmc(
-    dat ~ psi + mu + eta + Pi,
+    model, params = par,
     control = list(
       nbatch    = nbatch,
       nchains   = nchains,
