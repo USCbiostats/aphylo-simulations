@@ -6,18 +6,18 @@ dat0 <- readRDS("simulations/dgp.rds")
 dat0 <- lapply(dat0, "[[", "atree_o")
 
 # Priors and starting point
-mcmc.par   <- c(0.1, 0.1, 0.1, 0.1, 0.7, 0.9, 0.1)
+mcmc.par   <- c(0.1, 0.1, 0.1, 0.1, 0.1)
 mcmc.prior <- function(p) {
-  dbeta(p, c(2, 2, 2, 2, 7, 18, 2), c(18, 18, 18, 18, 3, 2, 18))
+  dbeta(p, c(2, 2, 2, 2, 2), c(18, 18, 18, 18, 18))
 }
 
 # Setting the seed
 set.seed(1)
 
 job <- Slurm_lapply(
-    dat = dat0,
-    dat ~ mu + psi + Pi,
+    dat0,
     mcmc_lite,
+    model      = dat ~ mu + psi + Pi,
     par        = mcmc.par,
     priors     = mcmc.prior,
     nbatch     = mcmc.nbatch,
@@ -37,13 +37,13 @@ job <- Slurm_lapply(
       )
   )
 
-saveRDS(job, paste0(PROJECT_PATH, "/simulations/03-missing/right-prior-estimates-job.rds"))
+saveRDS(job, paste0(PROJECT_PATH, "/simulations/03-pub-bias/right-prior-estimates-job.rds"))
 
 saveRDS(
   res <- Slurm_collect(job),
   paste0(
     PROJECT_PATH,
-    "/simulations/03-missing/mcmc_right_prior_estimates.rds"
+    "/simulations/03-pub-bias/mcmc_right_prior_estimates.rds"
     )
   )
 
