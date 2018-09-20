@@ -9,11 +9,11 @@ if (!dir.exists(STAGING_PATH))
 NSAMPLES     <- 100
 
 # MCMC
-mcmc.nbatch  <- 1e5
-mcmc.burnin  <- 5e4
+mcmc.nbatch  <- 5e4
+mcmc.burnin  <- 1e4
 mcmc.thin    <- 100
 mcmc.nchains <- 2
-mcmc.multicore <- TRUE
+mcmc.multicore <- FALSE
 
 # True DGP parameters
 ALPHA_PAR <- c( 2, 2, 2, 2, 7,18, 2)
