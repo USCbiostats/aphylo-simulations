@@ -6,13 +6,13 @@ PROJECT_PATH <- "/home/rcf-proj2/pdt/vegayon/aphylo-simulations"
 if (!dir.exists(STAGING_PATH))
   dir.create(STAGING_PATH)
 
-NSAMPLES     <- 100
+NSAMPLES     <- 2000
 
 # MCMC
-mcmc.nbatch  <- 5e4
-mcmc.burnin  <- 1e4
+mcmc.nbatch  <- 1e5
+mcmc.burnin  <- 2e4
 mcmc.thin    <- 100
-mcmc.nchains <- 2
+mcmc.nchains <- 4
 mcmc.multicore <- FALSE
 
 # True DGP parameters
@@ -23,7 +23,7 @@ BETA_PAR  <- c(18,18,18,18, 3, 2,18)
 mcmc_lite <- function(
   dat,
   model,
-  par,
+  params,
   priors  = NULL,
   nbatch  = mcmc.nbatch,
   nchains = mcmc.nchains,
@@ -35,6 +35,7 @@ mcmc_lite <- function(
    # Try to estimate the model
   ans <- tryCatch(aphylo_mcmc(
     model,
+    params  = params,
     control = list(
       nbatch    = nbatch,
       nchains   = nchains,

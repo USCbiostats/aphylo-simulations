@@ -5,6 +5,8 @@ source("simulations/00-global-parameters.r")
 dat0 <- readRDS("simulations/dgp.rds")[1:NSAMPLES]
 dat0 <- lapply(dat0, "[[", "atree")
 
+head(dat0)
+
 # Setting the seed
 set.seed(111222)
 
@@ -18,7 +20,7 @@ job <- Slurm_lapply(
     dat0,
     mcmc_lite,
     model      = dat ~ psi + eta + mu + Pi,
-    par        = mcmc.par,
+    params     = mcmc.par,
     priors     = mcmc.prior,
     nbatch     = mcmc.nbatch,
     nchains    = mcmc.nchains,
