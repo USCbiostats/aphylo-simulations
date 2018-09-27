@@ -11,7 +11,10 @@ source("simulations/summarize_predictions.r")
 N <- length(ans_MCMC_right_prior)
 
 # Prediction scores
-pred_scores <- summarize_predictions(ans_MCMC_right_prior, dat, N)
+pred_scores <- summarize_predictions(
+  x    = ans_MCMC_right_prior,
+  dat. = lapply(dat[1:N], "[[", "atree")
+  )
 saveRDS(pred_scores, file = "simulations/04-full-model/mcmc_right_prior_prediction.rds", compress = FALSE)
 
 
@@ -31,6 +34,6 @@ boxplot(ans, #main = "Distribution Relative\nPrediction Scores",
         sub  = sprintf(
           "Random annotations based on a Bernoulli(%.2f)",
           attr(pred_scores, "prop_of_1s")),
-        ylim = c(0,.6),outline = FALSE, notch=FALSE
+        ylim = c(0,1),outline = FALSE, notch=FALSE
 )
 dev.off()

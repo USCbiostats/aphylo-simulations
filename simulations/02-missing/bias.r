@@ -73,7 +73,8 @@ bias_calc <- function(x, parameters, trees) {
   ids <- which(sapply(x, length) > 0)
 
   ans <- parallel::mcmapply(
-    bias_calci, x[ids], parameters[ids], trees, mc.cores = 9
+    bias_calci, x=x[ids], par0=parameters[ids], tree=trees[ids], mc.cores = 9,
+    SIMPLIFY = FALSE
     )
   
   ans <- do.call(rbind, ans)
@@ -137,6 +138,6 @@ bias$size_tag <- interval_tags(bias$TreeSize, quantile(bias$TreeSize, na.rm = TR
 bias$PropLeafs <- with(bias, NLeafs/TreeSize)
 bias$PropLeafs_tag <- interval_tags(bias$PropLeafs, quantile(bias$PropLeafs, na.rm=TRUE))
 
-save(bias, file = "simulations/02-missing/bias.rda")
+saveRDS(bias, file = "simulations/02-missing/bias.rds")
 
 

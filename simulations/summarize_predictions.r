@@ -1,7 +1,9 @@
-summarize_predictions <- function(x., dat., N) {
+summarize_predictions <- function(x., dat.) {
+  
+  N <- length(x.)
   
   # Actual proportion of annotations
-  obs_anns <- lapply(lapply(dat.[1:N], "[[", "tip.annotation"), table)
+  obs_anns <- lapply(lapply(dat., "[[", "tip.annotation"), table)
   obs_anns <- do.call(rbind, lapply(obs_anns, function(x) {
     cbind(`0` = x["0"], `1` = x["1"])
   }))
@@ -15,14 +17,10 @@ summarize_predictions <- function(x., dat., N) {
     x.[[i]]
   })
   
-  message("Creating cluster...")
-  cl <- parallel::makeForkCluster(10)
-  on.exit(parallel::stopCluster(cl))
-  
   # Prediction scores
   message("Computing prediction scores...")
   structure(
-    parallel::parLapply(cl, 1:N , function(i) { 
+    parallel::mclapply(1:N , function(i) { 
       try(prediction_score(x.[[i]], expected = dat.[[i]]$annotations))
     }),
     prop_of_1s = prop_of_1s

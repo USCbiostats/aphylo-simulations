@@ -10,11 +10,16 @@
 knitr::opts_chunk$set(echo = FALSE)
 
 #+ data-loading, cache=TRUE
-load("simulations/02-gold-standard/data_and_functions.rda")
+source("simulations/01-gold-standard/00-simulation-parameters.r")
+dat <- readRDS("simulations/dgp.rds")
 
 library(ggplot2)
 library(magrittr)
 
+# Function to calculate the coverage 
+#' @param x An object of class `ahpylo_estimates`
+#' @param par0 The truth vector of parameters.
+#' @param pcent Type I error.
 coverage <- function(x, par0, pcent) {
   quant <- do.call(rbind, x$hist)
   quant <- apply(quant, 2, quantile, c(pcent/2, 1 - pcent/2))
@@ -28,7 +33,7 @@ bias_calci <- function(x, par0, tree) {
   if (!length(x)) return(NULL)
 
   # Names of the objects that will be stored
-  cnames <- c("psi0", "psi1", "mu0", "mu1", "Pi")
+  cnames <- c("psi0", "psi1", "mu0", "mu1", "eta0", "eta1", "Pi")
   cnames <- c(
     "TreeSize",
     "NLeafs",
@@ -66,35 +71,10 @@ bias_calci <- function(x, par0, tree) {
 
 }
 
-# Function to try to load a file -ntries- times waiting -wait- seconds
-# between each try.
-tryLoad <- function(fn, envir = .GlobalEnv, ..., ntries = 5, wait = 120) {
-  
-  message("Loading file ",fn, "...", appendLF = FALSE)
-  i <- 1
-  while (i < ntries) {
-    ans <- tryCatch(load(fn, envir = envir), error = function(e) e)
-  
-    if (inherits(ans, "error"))  {
-      i <- i + 1
-      print(ans)
-      message("Error! trying again in ", wait, "seconds (",i,"/",ntries,")...")
-      Sys.sleep(wait)
-      next
-    }
-    
-    break
-  }
-  
-  message("done.")
-  
-}
-
 bias_calc <- function(fn, objname) {
   env <- new.env()
 
-  # Trying to load the file
-  tryLoad(fn, envir = env)
+  assign(objname, readRDS(fn), envir = env)
   ids <- which(sapply(env[[objname]], length) > 0)
 
   message("\tComputing bias ...", appendLF = FALSE)
@@ -129,8 +109,8 @@ interval_tags <- function(x, marks) {
 # bias_MLE2 <- bias_calc("simulations/mle_estimates2.rda", "ans_MLE")
 # bias_MAP <- bias_calc("simulations/map_estimates.rda", "ans_MAP")
 # bias_MAP_wrong <- bias_calc("simulations/map_wrong_prior_estimates.rda", "ans_MAP_wrong_prior")
-bias_MCMC_right <- bias_calc("simulations/02-gold-standard/mcmc_right_prior_estimates.rda", "ans_MCMC_right_prior")
-bias_MCMC_wrong <- bias_calc("simulations/02-gold-standard/mcmc_wrong_prior_estimates.rda", "ans_MCMC_wrong_prior")
+bias_MCMC_right <- bias_calc("simulations/01-gold-standard/mcmc_right_prior_estimates.rds", "ans_MCMC_right_prior")
+bias_MCMC_wrong <- bias_calc("simulations/01-gold-standard/mcmc_wrong_prior_estimates.rda", "ans_MCMC_wrong_prior")
 
 # Checking solved solutions
 # common_solutions <- bias_MLE[,"index"]
@@ -159,6 +139,6 @@ bias$size_tag <- interval_tags(bias$TreeSize, quantile(bias$TreeSize, na.rm = TR
 bias$PropLeafs <- with(bias, NLeafs/TreeSize)
 bias$PropLeafs_tag <- interval_tags(bias$PropLeafs, quantile(bias$PropLeafs, na.rm=TRUE))
 
-save(bias, file = "simulations/02-gold-standard/bias.rda")
+saveRDS(bias, file = "simulations/01-gold-standard/bias.rds")
 
 
