@@ -9,7 +9,7 @@ options(xtable.booktabs = TRUE)
 options(xtable.include.rownames = FALSE)
 options(xtable.sanitize.text.function = function(x) x)
 
-bias <- readRDS("simulations/01-gold-standard/bias.rds")
+bias <- readRDS("simulations/03-pub-bias/bias.rds")
 
 # Cleaning latex errors
 # See https://www.sharelatex.com/learn/Errors/Illegal_unit_of_measure_(pt_inserted)
@@ -44,7 +44,7 @@ summ <- summ %>% ungroup %>%
     caption = "Coverage probability at the 95\\% level by prior (right/wrong), size of the tree, and proportion of missingness.  Estimations with the \\emph{right} prior use the same priors as the data generating process, whereas estimations with the \\emph{wrong} prior used a prior that had a mean twice as large as the data generating process.",
     label   = "tab:coverage95-method-size-missigness") %>%
   print %>%
-  cat(file = "tables/01_coverage95_by_method_size_missingness.tex")
+  cat(file = "tables/03_coverage95_by_method_size_missingness.tex")
 
 
 summ <- bias %>% 
@@ -68,5 +68,5 @@ summ %>% ungroup %>%
     caption = "Coverage probability at the 95\\% level by prior (right/wrong), and proportion of missingness. Estimations with the \\emph{right} prior use the same priors as the data generating process, whereas estimations with the \\emph{wrong} prior used a prior that had a mean twice as large as the data generating process.",
     label   = "tab:coverage95-method-missigness") %>%
   print %>%
-  cat(file = "tables/01_coverage95_by_method_missingness.tex")
+  cat(file = "tables/03_coverage95_by_method_missingness.tex")
 

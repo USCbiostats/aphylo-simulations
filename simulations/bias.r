@@ -106,10 +106,10 @@ interval_tags <- function(x, marks) {
 # bias_MLE2 <- bias_calc("simulations/mle_estimates2.rda", "ans_MLE")
 # bias_MAP <- bias_calc("simulations/map_estimates.rda", "ans_MAP")
 # bias_MAP_wrong <- bias_calc("simulations/map_wrong_prior_estimates.rda", "ans_MAP_wrong_prior")
-mcmc_right_prior_estimates <- readRDS("simulations/04-full-model/mcmc_right_prior_estimates.rds")
-bias_MCMC_right <- #bias_calc("simulations/04-full-model/mcmc_right_prior_estimates.rda", "ans_MCMC_right_prior")
+mcmc_right_prior_estimates <- readRDS("simulations/01-gold-standard/mcmc_right_prior_estimates.rds")
+bias_MCMC_right <- #bias_calc("simulations/01-gold-standard/mcmc_right_prior_estimates.rda", "ans_MCMC_right_prior")
   bias_calc(mcmc_right_prior_estimates, lapply(dat, "[[", "par"), lapply(dat, "[[", "atree"))
-# bias_MCMC_wrong <- bias_calc("simulations/04-full-model/mcmc_wrong_prior_estimates.rda", "ans_MCMC_wrong_prior")
+# bias_MCMC_wrong <- bias_calc("simulations/01-gold-standard/mcmc_wrong_prior_estimates.rda", "ans_MCMC_wrong_prior")
 
 # Checking solved solutions
 # common_solutions <- bias_MLE[,"index"]
@@ -138,6 +138,6 @@ bias$size_tag <- interval_tags(bias$TreeSize, quantile(bias$TreeSize, na.rm = TR
 bias$PropLeafs <- with(bias, NLeafs/TreeSize)
 bias$PropLeafs_tag <- interval_tags(bias$PropLeafs, quantile(bias$PropLeafs, na.rm=TRUE))
 
-saveRDS(bias, file = "simulations/04-full-model/bias.rds")
+saveRDS(bias, file = "simulations/01-gold-standard/bias.rds")
 
 
