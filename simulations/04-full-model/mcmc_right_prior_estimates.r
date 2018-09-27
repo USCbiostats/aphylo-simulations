@@ -24,7 +24,7 @@ job <- Slurm_lapply(
   nchains    = mcmc.nchains,
   burnin     = mcmc.burnin,
   thin       = mcmc.thin,
-  njobs      = 9,
+  njobs      = 15,
   mc.cores   = 10L,
   multicore  = mcmc.multicore, # TRUE,
   job_name   = "04-full-model-right-prior",
@@ -32,9 +32,11 @@ job <- Slurm_lapply(
   submit     = TRUE,
   sbatch_opt = list(
     ntasks          =  10,
-    time            = "12:00:00",
+    time            = "02:00:00",
     `cpus-per-task` = 1,
-    `mem-per-cpu`   = "500M"
+    `mem-per-cpu`   = "500M",
+    partition       = "conti",
+    account         = "lc_dvc"
   )
 )
 
