@@ -10,7 +10,7 @@
 knitr::opts_chunk$set(echo = FALSE)
 
 #+ data-loading, cache=TRUE
-load("simulations/02-gold-standard/data_and_functions.rda")
+dat <- readRDS("simulations/dgp.rds")
 
 library(ggplot2)
 library(magrittr)
@@ -28,7 +28,7 @@ bias_calci <- function(x, par0, tree) {
   if (!length(x)) return(NULL)
 
   # Names of the objects that will be stored
-  cnames <- c("psi0", "psi1", "mu0", "mu1", "Pi")
+  cnames <- c("psi0", "psi1", "mu0", "mu1", "eta0", "eta1", "Pi")
   cnames <- c(
     "TreeSize",
     "NLeafs",
@@ -73,7 +73,7 @@ tryLoad <- function(fn, envir = .GlobalEnv, ..., ntries = 5, wait = 120) {
   message("Loading file ",fn, "...", appendLF = FALSE)
   i <- 1
   while (i < ntries) {
-    ans <- tryCatch(load(fn, envir = envir), error = function(e) e)
+    ans <- tryCatch(assign("estimates", readRDS(fn), envir = envir), error = function(e) e)
   
     if (inherits(ans, "error"))  {
       i <- i + 1
@@ -85,6 +85,8 @@ tryLoad <- function(fn, envir = .GlobalEnv, ..., ntries = 5, wait = 120) {
     
     break
   }
+  
+  
   
   message("done.")
   
