@@ -5,7 +5,7 @@ library(tidyr)
 library(ggplot2)
 library(magrittr)
 
-bias <- readRDS("simulations/03-pub-bias/bias.rds")
+bias <- readRDS("simulations/04-full-model/bias.rds")
 
 bias <- select(
   bias, index, Prior, size_tag, miss_tag, PropLeafs_tag,
@@ -26,7 +26,7 @@ sizelvls <- levels(bias$size_tag)
 for (i in 1:4) {
   # Clearing plot space and creating the pdf
   
-  pdf(sprintf("simulations/03-pub-bias/bias_plots_tree-size=%s.pdf", switch (i,
+  pdf(sprintf("simulations/04-full-model/bias_plots_tree-size=%s.pdf", switch (i,
     `1` = "small",
     `2` = "mid-small",
     `3` = "mid-large",

@@ -10,16 +10,12 @@
 knitr::opts_chunk$set(echo = FALSE)
 
 #+ data-loading, cache=TRUE
-source("simulations/01-gold-standard/00-simulation-parameters.r")
 dat <- readRDS("simulations/dgp.rds")
+
 
 library(ggplot2)
 library(magrittr)
 
-# Function to calculate the coverage 
-#' @param x An object of class `ahpylo_estimates`
-#' @param par0 The truth vector of parameters.
-#' @param pcent Type I error.
 coverage <- function(x, par0, pcent) {
   quant <- do.call(rbind, x$hist)
   quant <- apply(quant, 2, quantile, c(pcent/2, 1 - pcent/2))
@@ -33,15 +29,16 @@ bias_calci <- function(x, par0, tree) {
   if (!length(x)) return(NULL)
 
   # Names of the objects that will be stored
-  cnames <- c("psi0", "psi1", "mu0", "mu1", "eta0", "eta1", "Pi")
+  parnames <- c("psi0", "psi1", "mu0", "mu1", "eta0", "eta1", "Pi") %>%
+    intersect(names(coef(x)))
   cnames <- c(
     "TreeSize",
     "NLeafs",
     "Missings",
-    cnames,
-    paste(cnames, "bias", sep="_"),
-    paste(cnames, "var", sep="_"),
-    paste(cnames, "covered95", sep="_")
+    parnames,
+    paste(parnames, "bias", sep="_"),
+    paste(parnames, "var", sep="_"),
+    paste(parnames, "covered95", sep="_")
   )
   
   # Checking if it was able to solve it or not
@@ -52,7 +49,7 @@ bias_calci <- function(x, par0, tree) {
   treesize <- length(tree$offspring)
   nleafs   <- nrow(tree$tip.annotation)
 
-  vrs <- diag(x$varcovar)
+  vrs <- diag(vcov(x))
   if (length(vrs) == 4)
     vrs <- c(vrs, NA)
   
@@ -60,27 +57,27 @@ bias_calci <- function(x, par0, tree) {
     c(
       treesize,
       nleafs,
-      par0[6],
+      par0["drop"],
       x$par,
-      x$par - par0[1:5],
+      x$par - par0[parnames],
       vrs,
-      coverage(x, par0[-6], .05)
+      coverage(x, par0[parnames], .05)
       ),
     names = cnames
     )
 
 }
 
-bias_calc <- function(fn, objname) {
-  env <- new.env()
+bias_calc <- function(x, parameters, trees) {
+  
+  ids <- which(sapply(x, length) > 0)
 
-  assign(objname, readRDS(fn), envir = env)
-  ids <- which(sapply(env[[objname]], length) > 0)
-
-  message("\tComputing bias ...", appendLF = FALSE)
-  ans <- Map(bias_calci, env[[objname]][ids], parameters[ids], dat[ids])
+  ans <- parallel::mcmapply(
+    bias_calci, x=x[ids], par0=parameters[ids], tree=trees[ids], mc.cores = 9,
+    SIMPLIFY = FALSE
+    )
+  
   ans <- do.call(rbind, ans)
-  message("done.")
 
   ans <- cbind(index = ids, ans)
 
@@ -109,8 +106,10 @@ interval_tags <- function(x, marks) {
 # bias_MLE2 <- bias_calc("simulations/mle_estimates2.rda", "ans_MLE")
 # bias_MAP <- bias_calc("simulations/map_estimates.rda", "ans_MAP")
 # bias_MAP_wrong <- bias_calc("simulations/map_wrong_prior_estimates.rda", "ans_MAP_wrong_prior")
-bias_MCMC_right <- bias_calc("simulations/01-gold-standard/mcmc_right_prior_estimates.rds", "ans_MCMC_right_prior")
-bias_MCMC_wrong <- bias_calc("simulations/01-gold-standard/mcmc_wrong_prior_estimates.rda", "ans_MCMC_wrong_prior")
+mcmc_right_prior_estimates <- readRDS("simulations/01-gold-standard/mcmc_right_prior_estimates.rds")
+bias_MCMC_right <- #bias_calc("simulations/01-gold-standard/mcmc_right_prior_estimates.rda", "ans_MCMC_right_prior")
+  bias_calc(mcmc_right_prior_estimates, lapply(dat, "[[", "par"), lapply(dat, "[[", "atree"))
+# bias_MCMC_wrong <- bias_calc("simulations/01-gold-standard/mcmc_wrong_prior_estimates.rda", "ans_MCMC_wrong_prior")
 
 # Checking solved solutions
 # common_solutions <- bias_MLE[,"index"]
@@ -123,7 +122,7 @@ bias <- rbind(
   # data.frame(Method = "MLE2", bias_MLE2)
   # data.frame(Method = "MAP", bias_MAP),
   # data.frame(Method = "MAP wrong", bias_MAP_wrong),
-  data.frame(Prior = "Wrong", bias_MCMC_wrong),
+  # data.frame(Prior = "Wrong", bias_MCMC_wrong),
   data.frame(Prior = "Right", bias_MCMC_right)
 )
 
