@@ -3,6 +3,14 @@ STAGING_PATH <- "/staging/pdt/vegayon/aphylo-simulations"
 PANTHER_PATH <- "/auto/pmd-02/pdt/pdthomas/panther/famlib/rel/PANTHER13.1_altVersion/hmmscoring/PANTHER13.1/books"
 PROJECT_PATH <- "/home/rcf-proj2/pdt/vegayon/aphylo-simulations"
 
+opts_sluRm$set_chdir(STAGING_PATH)
+opts_sluRm$set_opts(
+  partition     = "thomas",
+  account       = "lc_pdt",
+  time          = "05:00:00",
+  `mem-per-cpu` = "2G"
+)
+
 if (!dir.exists(STAGING_PATH))
   dir.create(STAGING_PATH)
 
@@ -45,7 +53,8 @@ mcmc_lite <- function(
     )
     ,
     priors = priors,
-    check.informative = FALSE
+    check.informative = FALSE,
+    reduced_pseq = TRUE
   ),
   error = function(e) e
   )

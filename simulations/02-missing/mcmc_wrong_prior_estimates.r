@@ -3,44 +3,42 @@ library(sluRm)
 
 source("simulations/00-global-parameters.r")
 dat0 <- readRDS("simulations/dgp.rds")[1:NSAMPLES]
-dat0 <- lapply(dat0, "[[", "atree")
+dat0 <- lapply(dat0, "[[", "atree_i")
 
 # Setting the seed
 set.seed(111222)
 
-mcmc.par   <- matrix(runif(7*mcmc.nchains), ncol=7)
+mcmc.par   <- matrix(runif(5*mcmc.nchains), ncol=5)
 mcmc.prior <- function(p) {
-  dbeta(p, c(2, 2, 2, 2, 7, 18, 2), c(18, 18, 18, 18, 3, 2, 18))
+  dbeta(p, c(4, 4, 4, 4, 4), c(16, 16, 16, 16, 16))
 }
-
 
 job <- Slurm_lapply(
   dat0,
   mcmc_lite,
-  model      = dat ~ psi + eta + mu + Pi,
+  model      = dat ~ psi + mu + Pi,
   params     = mcmc.par,
   priors     = mcmc.prior,
   nbatch     = mcmc.nbatch,
   nchains    = mcmc.nchains,
   burnin     = mcmc.burnin,
   thin       = mcmc.thin,
-  njobs      = 40,
+  njobs      = 40L,
   mc.cores   = 5L,
   multicore  = mcmc.multicore, # TRUE,
-  job_name   = "01-gold-standard-right-prior",
+  job_name   = "02-missing-wrong-prior",
   submit     = TRUE
 )
 
-saveRDS(job, paste0(PROJECT_PATH, "/simulations/01-gold-standard/job.rds"))
+saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-missing/wrong-prior-estimates-job.rds"))
 
 saveRDS(
   res <- Slurm_collect(job),
   paste0(
     PROJECT_PATH,
-    "/simulations/01-gold-standard/mcmc_right_prior_estimates.rds"
+    "/simulations/02-missing/mcmc_wrong_prior_estimates.rds"
     )
   )
 
-head(res)
-
+res
 job
