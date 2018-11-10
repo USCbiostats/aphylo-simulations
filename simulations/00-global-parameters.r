@@ -17,7 +17,7 @@ if (!dir.exists(STAGING_PATH))
 NSAMPLES     <- 2000
 
 # MCMC
-mcmc.nbatch  <- 1e5
+mcmc.nsteps  <- 1e5
 mcmc.burnin  <- 2e4
 mcmc.thin    <- 50
 mcmc.nchains <- 4
@@ -33,7 +33,7 @@ mcmc_lite <- function(
   model,
   params,
   priors  = NULL,
-  nbatch  = mcmc.nbatch,
+  nsteps  = mcmc.nsteps,
   nchains = mcmc.nchains,
   burnin  = mcmc.burnin,
   thin    = mcmc.thin,
@@ -45,7 +45,7 @@ mcmc_lite <- function(
     model,
     params  = params,
     control = list(
-      nbatch       = nbatch,
+      nsteps       = nsteps,
       nchains      = nchains,
       burnin       = burnin,
       thin         = thin,

@@ -19,7 +19,7 @@ job <- Slurm_lapply(
   model      = dat ~ mu + psi + Pi,
   params     = mcmc.par,
   priors     = mcmc.prior,
-  nbatch     = mcmc.nbatch,
+  nsteps     = mcmc.nsteps,
   nchains    = mcmc.nchains,
   burnin     = mcmc.burnin,
   thin       = mcmc.thin,
