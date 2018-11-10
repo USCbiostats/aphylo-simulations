@@ -44,7 +44,7 @@ for (i in 1:4) {
     ggplot(aes(parameter, bias)) + geom_boxplot(aes(colour = Prior)) +
     
     # Adding an horizontal line, and spliting my % of missings
-    geom_hline(yintercept = 0, lty=2) + facet_grid(miss_tag ~ .) +
+    geom_hline(yintercept = 0, lty=2) + # facet_grid(miss_tag ~ .) +
     ylim(-.2,.2) + ylab("Bias") + xlab("")
   
   # Adding a title
