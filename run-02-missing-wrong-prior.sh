@@ -2,7 +2,7 @@
 #SBATCH --job-name="02-missing-wrong-prior"
 #SBATCH --output="02-missing-wrong-prioir-slurm%A.out"
 #SBATCH --time="12:00:00"
-#SBATCH --mem-per-cpu=2G
+#SBATCH --mem-per-cpu=8G
 #SBATCH --partition=thomas
 #SBATCH --account=lc_pdt
 #SBATCH --mail-type=ALL

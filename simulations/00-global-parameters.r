@@ -19,7 +19,7 @@ NSAMPLES     <- 2000
 # MCMC
 mcmc.nbatch  <- 1e5
 mcmc.burnin  <- 2e4
-mcmc.thin    <- 100
+mcmc.thin    <- 50
 mcmc.nchains <- 4
 mcmc.multicore <- FALSE
 
@@ -45,16 +45,18 @@ mcmc_lite <- function(
     model,
     params  = params,
     control = list(
-      nbatch    = nbatch,
-      nchains   = nchains,
-      burnin    = burnin,
-      thin      = thin,
-      multicore = multicore
+      nbatch       = nbatch,
+      nchains      = nchains,
+      burnin       = burnin,
+      thin         = thin,
+      multicore    = multicore,
+      conv_checker = amcmc::gelman_convergence(1.05),
+      autostop     = 5e3
     )
     ,
-    priors = priors,
+    priors            = priors,
     check.informative = FALSE,
-    reduced_pseq = TRUE
+    reduced_pseq      = TRUE
   ),
   error = function(e) e
   )

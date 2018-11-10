@@ -2,7 +2,7 @@ library(aphylo)
 library(sluRm)
 
 source("simulations/00-global-parameters.r")
-dat0 <- readRDS("simulations/dgp.rds")[1:NSAMPLES]
+dat0 <- readRDS("simulations/dgp.rds") #[1:NSAMPLES]
 dat0 <- lapply(dat0, "[[", "atree_i")
 
 # Setting the seed
@@ -23,8 +23,8 @@ job <- Slurm_lapply(
   nchains    = mcmc.nchains,
   burnin     = mcmc.burnin,
   thin       = mcmc.thin,
-  njobs      = 40L,
-  mc.cores   = 5L,
+  njobs      = 55L,
+  mc.cores   = 4L,
   multicore  = mcmc.multicore, # TRUE,
   job_name   = "02-missing-right-prior",
   submit     = TRUE
