@@ -8,16 +8,16 @@ dat0 <- lapply(dat0, "[[", "atree")
 # Setting the seed
 set.seed(111222)
 
-mcmc.par   <- matrix(runif(5*mcmc.nchains), ncol=5)
+mcmc.par   <- matrix(runif(3*mcmc.nchains), ncol=3)
 mcmc.prior <- function(p) {
-  dbeta(p, c(2, 2, 2, 2, 2), c(18, 18, 18, 18, 18))
+  dbeta(p, c(2, 2, 2), c(18, 18, 18))
 }
 
 
 job <- Slurm_lapply(
   dat0,
   mcmc_lite,
-  model      = dat ~ psi + mu + Pi,
+  model      = dat ~ mu + Pi,
   params     = mcmc.par,
   priors     = mcmc.prior,
   nsteps     = mcmc.nsteps,
