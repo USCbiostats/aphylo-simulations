@@ -25,7 +25,7 @@ knitr::opts_chunk$set(echo = FALSE)
 *   Each model ran the MCMCs with the following parameteres:
     
     ```r
-    mcmc.nbatch  <- 1e5
+    mcmc.nsteps  <- 1e5
     mcmc.burnin  <- 2e4
     mcmc.thin    <- 100
     mcmc.nchains <- 4
