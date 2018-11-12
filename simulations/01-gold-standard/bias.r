@@ -21,7 +21,7 @@ library(ggplot2)
 library(magrittr)
 
 # Computing bias ---------------------------------------------------------------
-vnames <- c("psi0", "psi1", "mu0", "mu1", "Pi")
+vnames <- c("mu0", "mu1", "Pi")
 bias_MCMC_right <- bias_calc("simulations/01-gold-standard/mcmc_right_prior_estimates.rds", "ans_MCMC_right_prior")
 bias_MCMC_wrong <- bias_calc("simulations/01-gold-standard/mcmc_wrong_prior_estimates.rds", "ans_MCMC_wrong_prior")
 
