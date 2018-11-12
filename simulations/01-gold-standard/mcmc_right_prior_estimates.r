@@ -10,7 +10,7 @@ set.seed(111222)
 
 mcmc.par   <- matrix(runif(3*mcmc.nchains), ncol=3)
 mcmc.prior <- function(p) {
-  dbeta(p, c(2, 2, 2), c(18, 18, 18))
+  dbeta(p, c(2, 2, 2), c(38, 38, 38))
 }
 
 
@@ -24,7 +24,7 @@ job <- Slurm_lapply(
   nchains    = mcmc.nchains,
   burnin     = mcmc.burnin,
   thin       = mcmc.thin,
-  njobs      = 60L,
+  njobs      = 55L,
   mc.cores   = 4L,
   multicore  = mcmc.multicore, # TRUE,
   job_name   = "01-gold-standard-right-prior",

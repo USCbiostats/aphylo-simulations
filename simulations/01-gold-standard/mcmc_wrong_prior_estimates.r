@@ -10,7 +10,7 @@ set.seed(111222)
 
 mcmc.par   <- matrix(runif(3*mcmc.nchains), ncol=3)
 mcmc.prior <- function(p) {
-  dbeta(p, c(4, 4, 4), c(18, 18, 18))
+  dbeta(p, c(2, 2, 2), c(18, 18, 18))
 }
 
 job <- Slurm_lapply(

@@ -14,7 +14,7 @@ opts_sluRm$set_opts(
 if (!dir.exists(STAGING_PATH))
   dir.create(STAGING_PATH)
 
-NSAMPLES     <- 2000
+NSAMPLES     <- 10000
 
 # MCMC
 mcmc.nsteps  <- 1e5
@@ -24,8 +24,8 @@ mcmc.nchains <- 4
 mcmc.multicore <- FALSE
 
 # True DGP parameters
-ALPHA_PAR <- c( 2, 2, 2, 2, 7,18, 2)
-BETA_PAR  <- c(18,18,18,18, 3, 2,18)
+ALPHA_PAR <- c( 2, 2, 2, 2, 7,38, 2)
+BETA_PAR  <- c(38,38,38,38, 3, 2,38)
 
 # Function to estimate model using MCMC
 mcmc_lite <- function(
@@ -37,7 +37,8 @@ mcmc_lite <- function(
   nchains = mcmc.nchains,
   burnin  = mcmc.burnin,
   thin    = mcmc.thin,
-  multicore = mcmc.multicore
+  multicore = mcmc.multicore,
+  reduced_pseq. = TRUE
 ) {
   
    # Try to estimate the model
@@ -56,7 +57,7 @@ mcmc_lite <- function(
     ,
     priors            = priors,
     check.informative = FALSE,
-    reduced_pseq      = TRUE
+    reduced_pseq      = reduced_pseq.
   ),
   error = function(e) e
   )
