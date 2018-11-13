@@ -3,7 +3,7 @@ library(sluRm)
 
 source("simulations/00-global-parameters.r")
 dat0 <- readRDS("simulations/dgp.rds") #[1:NSAMPLES]
-dat0 <- lapply(dat0, "[[", "atree_m")
+# dat0 <- lapply(dat0, "[[", "atree_m")
 
 # Setting the seed
 set.seed(111222)
