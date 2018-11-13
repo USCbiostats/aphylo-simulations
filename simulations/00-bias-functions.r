@@ -12,7 +12,8 @@ coverage <- function(x, par0, pcent) {
 # Function to measure bias
 bias_calci <- function(x, par0, tree) {
   
-  if (!length(x)) return(NULL)
+  if (!length(x))
+    return(NULL)
   
   # Names of the objects that will be stored
   # vnames <- names(coef(x))
@@ -20,6 +21,7 @@ bias_calci <- function(x, par0, tree) {
     "TreeSize",
     "NLeafs",
     "Missings",
+    "PropOf0",
     paste(vnames, "pop", sep="_"),
     paste(vnames, "estimated", sep="_"),
     paste(vnames, "bias", sep="_"),
@@ -30,6 +32,10 @@ bias_calci <- function(x, par0, tree) {
   # Checking if it was able to solve it or not
   if (inherits(x, "error"))
     return(structure(rep(NA, length(cnames)), names = cnames))
+  
+  # Calculating the proportion of 0s out of the total annotated
+  prop_of_0s <- aphylo:::fast_table_using_labels(tree$tip.annotation, c(0L, 1L))
+  prop_of_0s <- prop_of_0s[1]/sum(prop_of_0s)
   
   # Number of offspring and internal nodes
   treesize <- length(tree$offspring)
@@ -44,6 +50,7 @@ bias_calci <- function(x, par0, tree) {
       treesize,
       nleafs,
       par0["drop"],
+      prop_of_0s,
       par0[vnames],
       coef(x),
       coef(x) - par0[vnames],
