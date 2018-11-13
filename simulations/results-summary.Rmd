@@ -1,0 +1,180 @@
+---
+title: "P2 Simulation Results"
+output:
+  beamer_presentation:
+    slide_level: 2
+author: George G Vega Yon
+date: Sep 27, 2018
+header-includes: \usepackage{booktabs}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Intro
+
+*   Took the first 2,000 trees from panther
+
+*   Ran 4 types of models:
+    1.  Gold Standard (no missing) `dat ~ psi + eta + mu + Pi`
+    2.  Missing `dat ~ psi + eta + mu + Pi`
+    3.  Pub Bias (has missing and publication bias) `dat ~ mu + psi + Pi`
+    4.  Full model (same as before) `dat ~ psi + eta + mu + Pi`
+    
+*   Each model ran the MCMCs with the following parameteres:
+    
+    ```r
+    mcmc.nbatch  <- 1e5
+    mcmc.burnin  <- 2e4
+    mcmc.thin    <- 100
+    mcmc.nchains <- 4
+    ```
+    
+    Moreover, each chain now starts from a randomly chosen point.
+
+# Bias
+
+## Contents
+
+\tableofcontents[currentsection]
+
+## 01-gold-standard: Small
+
+```{r, out.width=".6\\linewidth", fig.align='center'}
+knitr::include_graphics("01-gold-standard/bias_plots_tree-size=small.pdf")
+```
+
+## 01-gold-standard: Mid-small
+
+```{r, out.width=".6\\linewidth", fig.align='center'}
+knitr::include_graphics("01-gold-standard/bias_plots_tree-size=mid-small.pdf")
+```
+
+## 01-gold-standard: Mid-large
+
+```{r, out.width=".6\\linewidth", fig.align='center'}
+knitr::include_graphics("01-gold-standard/bias_plots_tree-size=mid-large.pdf")
+```
+
+## 01-gold-standard: Large
+
+```{r, out.width=".6\\linewidth", fig.align='center'}
+knitr::include_graphics("01-gold-standard/bias_plots_tree-size=large.pdf")
+```
+
+## 04-full-model: Small
+
+```{r, out.width=".6\\linewidth", fig.align='center'}
+knitr::include_graphics("04-full-model/bias_plots_tree-size=small.pdf")
+```
+
+## 04-full-model: Mid-small
+
+```{r, out.width=".6\\linewidth", fig.align='center'}
+knitr::include_graphics("04-full-model/bias_plots_tree-size=mid-small.pdf")
+```
+
+## 04-full-model: Mid-large
+
+```{r, out.width=".6\\linewidth", fig.align='center'}
+knitr::include_graphics("04-full-model/bias_plots_tree-size=mid-large.pdf")
+```
+
+## 04-full-model: Large
+
+```{r, out.width=".6\\linewidth", fig.align='center'}
+knitr::include_graphics("04-full-model/bias_plots_tree-size=large.pdf")
+```
+
+# Convergence
+
+## Contents
+
+\tableofcontents[currentsection]
+
+## 01-gold-standard
+
+```{r, fig.align='center', out.width=".7\\linewidth"}
+knitr::include_graphics("01-gold-standard/gelmans.pdf")
+```
+
+
+## 02-missing
+
+```{r, fig.align='center', out.width=".7\\linewidth"}
+knitr::include_graphics("02-missing/gelmans.pdf")
+```
+
+
+## 03-pub-bias
+
+```{r, fig.align='center', out.width=".7\\linewidth"}
+knitr::include_graphics("03-pub-bias/gelmans.pdf")
+```
+
+
+## 04-full-model
+
+```{r, fig.align='center', out.width=".7\\linewidth"}
+knitr::include_graphics("04-full-model/gelmans.pdf")
+```
+
+
+# Coverage
+
+## Contents
+
+\tableofcontents[currentsection]
+
+## 01-gold-standard
+
+\input{../tables/01_coverage95_by_method_missingness.tex}
+
+## 02-missing
+
+\input{../tables/02_coverage95_by_method_missingness.tex}
+
+## 03-pub-bias
+
+\input{../tables/03_coverage95_by_method_missingness.tex}
+
+
+## 04-full-model
+
+\input{../tables/04_coverage95_by_method_missingness.tex}
+
+
+# Prediction
+
+## Contents
+
+\tableofcontents[currentsection]
+
+## 01-gold-standard
+
+```{r, fig.align='center', out.width=".7\\linewidth"}
+knitr::include_graphics("01-gold-standard/mcmc_right_prior_prediction.pdf")
+```
+
+
+## 02-missing
+
+```{r, fig.align='center', out.width=".7\\linewidth"}
+knitr::include_graphics("02-missing/mcmc_right_prior_prediction.pdf")
+```
+
+
+## 03-pub-bias
+
+```{r, fig.align='center', out.width=".7\\linewidth"}
+knitr::include_graphics("03-pub-bias/mcmc_right_prior_prediction.pdf")
+```
+
+
+## 04-full-model
+
+```{r, fig.align='center', out.width=".7\\linewidth"}
+knitr::include_graphics("04-full-model/mcmc_right_prior_prediction.pdf")
+```
+

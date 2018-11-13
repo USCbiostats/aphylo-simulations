@@ -5,6 +5,6 @@
 *.RData
 .Rproj.user
 *.Rhistory
-
+*.pdf
 _rslurm*
 
