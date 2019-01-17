@@ -31,7 +31,7 @@ for (i in 1:4) {
     `2` = "mid-small",
     `3` = "mid-large",
     `4` = "large"
-  )))
+  )), width = 5, height = 5)
   
   # Nobservations in this group
   nobs <- bias %>% dplyr::filter(as.integer(size_tag) == i) %>%

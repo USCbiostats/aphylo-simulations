@@ -28,4 +28,4 @@ ans %>%
   coord_cartesian(clip="off") +
   annotate("text", x=.5, y=.975, label="0.95", just="left") +
   labs(title = "Distribution of AUC values") + 
-  ggsave("simulations/04-full-model/auc.pdf", device = "pdf")
+  ggsave("simulations/04-full-model/auc.pdf", device = "pdf", width=6, height=6)

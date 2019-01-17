@@ -26,6 +26,6 @@ ans %>%
   geom_boxplot() +
   geom_hline(yintercept=.95, linetype=2) +
   coord_cartesian(clip="off") +
-  annotate("text", x=.5, y=.975, label="0.95", just="left") +
+  annotate("text", x=.5, y=.975, label="0.95") +
   labs(title = "Distribution of AUC values") + 
-  ggsave("simulations/03-pub-bias/auc.pdf", device = "pdf")
+  ggsave("simulations/03-pub-bias/auc.pdf", device = "pdf", width=6, height=6)
