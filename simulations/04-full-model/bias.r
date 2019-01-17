@@ -16,7 +16,7 @@ source("simulations/00-global-parameters.r")
 source("simulations/00-bias-functions.r")
 
 dat <- readRDS("simulations/dgp.rds")
-
+  
 library(ggplot2)
 library(magrittr)
 
