@@ -26,18 +26,18 @@ job <- Slurm_lapply(
   njobs      = 55L,
   mc.cores   = 4L,
   multicore  = mcmc.multicore, # TRUE,
-  job_name   = "03-pub-bias-right-prior",
+  job_name   = "03-pub-bias-wrong-prior",
   job_path   = STAGING_PATH,
   submit     = TRUE
  )
 
-saveRDS(job, paste0(PROJECT_PATH, "/simulations/03-pub-bias/right-prior-estimates-job.rds"))
+saveRDS(job, paste0(PROJECT_PATH, "/simulations/03-pub-bias/wrong-prior-estimates-job.rds"))
 
 saveRDS(
   res <- Slurm_collect(job),
   paste0(
     PROJECT_PATH,
-    "/simulations/03-pub-bias/mcmc_right_prior_estimates.rds"
+    "/simulations/03-pub-bias/mcmc_wrong_prior_estimates.rds"
     )
   )
 
