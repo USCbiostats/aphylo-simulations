@@ -3,6 +3,7 @@ library(dplyr)
 library(tidyr)
 library(magrittr)
 library(aphylo)
+library(sluRm)
 
 source("global-paths.r")
 
@@ -13,10 +14,16 @@ candidate_functions <- readr::read_csv("data/candidate_functions.csv")
 candidate_trees     <- unique(candidate_functions$substring)
 
 # Reading panther trees
-trees <- lapply(
-  sprintf("%s/%s/tree.tree", PANTHER_PATH, candidate_trees[1:ntrees]),
-  read_panther
+trees <- Slurm_lapply(
+  sprintf("%s/%s/tree.tree", PANTHER_PATH, candidate_trees), 
+  read_panther,
+  njobs      = 10,
+  job_name   = "candidate-trees",
+  job_path   = STAGING_PATH,
+  sbatch_opt = list(account = "lc_pdt", partition = "thomas")
   )
+
+trees <- Slurm_collect(trees)
 
 # Preserving the UniProtKB id only
 for (i in seq_along(trees))
@@ -36,7 +43,7 @@ annotations <- annotations %>%
 
 # Creating aphylo objets
 atrees <- vector("list", length(trees))
-for (i in seq_len(ntrees)) {
+for (i in seq_along(atrees)) {
   
   # Gathering the corresponding annotations
   a <- filter(annotations, substring == candidate_trees[i]) %>%
@@ -76,5 +83,11 @@ for (i in seq_len(ntrees)) {
     tree = trees[[i]]$tree
     )
   
+  # if (!(i %% 10))
+  #   message(sprintf("atree[%i] done", i))
+  
 }
+
+names(atrees) <- candidate_trees
+saveRDS(atrees, file = "data/candidate_trees.rds")
 
