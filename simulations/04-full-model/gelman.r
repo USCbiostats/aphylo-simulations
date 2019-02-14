@@ -1,59 +1,46 @@
 rm(list = ls())
 
-# Extract and compile Gelman tests
-library(aphylo)
-library(amcmc)
-library(coda)
-
-# This function extract the gelman statistics for the ith element of 
-# -mcmc_right_prior_estimates_sample-
-get_gelman <- function(x, obj) {
-  
-  # Trying to compute gelman test
-  ans <- tryCatch(gelman.diag(obj[[x]][["hist"]]),
-                  error = function(e) e)
-  
-  # Returning if error (with NA)
-  if (inherits(ans, "error")) {
-    print(ans)
-    message("Element number -",x,"- has errors.")
-    return(rep(NA, 5*2 + 1))
-  }
-  
-  # Coercing into a vector
-  dn <- rownames(ans$psrf)
-  dn <- c(
-    sprintf("Point est. %s", dn),
-    sprintf("Upper C.I. %s", dn),
-    "mpsrf"
-  )
-  
-  # Nice named matrix
-  matrix(
-    c(ans$psrf[,1], ans$psrf[,2], ans$mpsrf),
-    byrow = TRUE, nrow = 1,
-    dimnames = list(x, dn)
-  )
-}
-
-
-library(parallel)
+source("simulations/00-gelman-functions.r")
 
 # Checkingout Right prior estimates --------------------------------------------
 ans_MCMC_right_prior <- readRDS("simulations/04-full-model/mcmc_right_prior_estimates.rds")
+ans_MCMC_wrong_prior <- readRDS("simulations/04-full-model/mcmc_wrong_prior_estimates.rds")
 
 # Extracting the data
 N <- length(ans_MCMC_right_prior)
-gelmans <- do.call(rbind, parallel::mclapply(1:N, get_gelman, obj = ans_MCMC_right_prior, mc.cores=4))
+gelmans_right <- do.call(rbind, parallel::mclapply(1:N, get_gelman, obj = ans_MCMC_right_prior, mc.cores=10L))
+gelmans_wrong <- do.call(rbind, parallel::mclapply(1:N, get_gelman, obj = ans_MCMC_wrong_prior, mc.cores=10L))
+
+library(ggplot2)
+library(magrittr)
+
+gelmans_right <- as.data.frame(gelmans_right)
+gelmans_wrong <- as.data.frame(gelmans_wrong)
+
+gelmans_right$Prior <- "Right"
+gelmans_wrong$Prior <- "Wrong"
+
+gelmans <- rbind(gelmans_right, gelmans_wrong)
 
 # Saving the data
-saveRDS(gelmans, file = "simulations/04-full-model/gelmans.rds")
+saveRDS(gelmans, file = "simulations/04-full-model/gelman.rds")
+
+library(tidyr)
 
 graphics.off()
-pdf("simulations/04-full-model/gelmans.pdf")
-oldpar <- par(no.readonly = TRUE)
-par(mar = par("mar")*c(2, 1, 1, 1))
-boxplot(gelmans, las = 2, log="y")#, main = "Distribution of\nGelman Statistics (right prior)")
-par(oldpar)
+pdf("simulations/04-full-model/gelman.pdf")
+gelmans %>%
+  gather("Statistic", "Score", -Prior) %>%
+  subset(Statistic == "mpsrf") %>%
+  ggplot(aes(x=Prior, y=Score)) +
+  geom_jitter(aes(Prior, Score), alpha=.5, colour="tomato") +
+  scale_y_log10() +
+  labs(
+    title    = "Distribution of Multivariate Gelman Diagnostic",
+    subtitle = sprintf(
+      "Only %0.2f of the chains did not converged",
+      mean(gelmans$mpsrf > 1.1, na.rm = TRUE)
+    )
+  )
 dev.off()
 

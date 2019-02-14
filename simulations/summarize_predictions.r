@@ -21,7 +21,9 @@ summarize_predictions <- function(x., dat.) {
   message("Computing prediction scores...")
   structure(
     parallel::mclapply(1:N , function(i) { 
-      try(prediction_score(x.[[i]], expected = dat.[[i]]$annotations))
+      try(prediction_score(
+        x.[[i]],
+        expected = with(dat.[[i]], rbind(tip.annotation, node.annotation))))
     }),
     prop_of_1s = prop_of_1s
   )

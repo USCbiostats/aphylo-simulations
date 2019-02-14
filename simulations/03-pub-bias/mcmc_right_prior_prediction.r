@@ -4,6 +4,7 @@ library(aphylo)
 
 
 dat <- readRDS("simulations/dgp.rds")
+
 ans_MCMC_right_prior <- readRDS("simulations/03-pub-bias/mcmc_right_prior_estimates.rds")
 
 source("simulations/summarize_predictions.r")
@@ -15,6 +16,7 @@ pred_scores <- summarize_predictions(
   x    = ans_MCMC_right_prior,
   dat. = lapply(dat[1:N], "[[", "atree")
 )
+
 saveRDS(pred_scores, file = "simulations/03-pub-bias/mcmc_right_prior_prediction.rds", compress = FALSE)
 
 

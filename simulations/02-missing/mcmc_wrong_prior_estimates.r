@@ -10,7 +10,7 @@ set.seed(111222)
 
 mcmc.par   <- matrix(runif(5*mcmc.nchains), ncol=5)
 mcmc.prior <- function(p) {
-  dbeta(p, c(4, 4, 4, 4, 4), c(16, 16, 16, 16, 16))
+  dbeta(p, c(2, 2, 2, 2, 2), c(18, 18, 18, 18, 18))
 }
 
 job <- Slurm_lapply(
@@ -19,7 +19,7 @@ job <- Slurm_lapply(
   model      = dat ~ psi + mu + Pi,
   params     = mcmc.par,
   priors     = mcmc.prior,
-  nbatch     = mcmc.nbatch,
+  nsteps     = mcmc.nsteps,
   nchains    = mcmc.nchains,
   burnin     = mcmc.burnin,
   thin       = mcmc.thin,

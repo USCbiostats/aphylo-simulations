@@ -3,14 +3,14 @@ library(sluRm)
 
 source("simulations/00-global-parameters.r")
 dat0 <- readRDS("simulations/dgp.rds") #[1:NSAMPLES]
-dat0 <- lapply(dat0, "[[", "atree_m")
+# dat0 <- lapply(dat0, "[[", "atree_m")
 
 # Setting the seed
 set.seed(111222)
 
 mcmc.par   <- matrix(runif(5*mcmc.nchains), ncol=5)
 mcmc.prior <- function(p) {
-  dbeta(p, c(2, 2, 2, 2, 2), c(18, 18, 18, 18, 18))
+  dbeta(p, c(2, 2, 2, 2, 2), c(38, 38, 38, 38, 38))
 }
 
 job <- Slurm_lapply(
@@ -19,7 +19,7 @@ job <- Slurm_lapply(
   model      = dat ~ psi + mu + Pi,
   params     = mcmc.par,
   priors     = mcmc.prior,
-  nbatch     = mcmc.nbatch,
+  nsteps     = mcmc.nsteps,
   nchains    = mcmc.nchains,
   burnin     = mcmc.burnin,
   thin       = mcmc.thin,
