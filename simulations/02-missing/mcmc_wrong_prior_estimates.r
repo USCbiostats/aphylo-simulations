@@ -10,7 +10,7 @@ set.seed(111222)
 
 mcmc.par   <- matrix(runif(5*mcmc.nchains), ncol=5)
 mcmc.prior <- function(p) {
-  dbeta(p, c(2, 2, 2, 2, 2), c(18, 18, 18, 18, 18))
+  dbeta(p, c(4, 4, 4, 4, 4), c(16, 16, 16, 16, 16))
 }
 
 job <- Slurm_lapply(
@@ -26,17 +26,17 @@ job <- Slurm_lapply(
   njobs      = 55L,
   mc.cores   = 4L,
   multicore  = mcmc.multicore, # TRUE,
-  job_name   = "02-missing-right-prior",
+  job_name   = "02-missing-wrong-prior",
   submit     = TRUE
 )
 
-saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-missing/right-prior-estimates-job.rds"))
+saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-missing/wrong-prior-estimates-job.rds"))
 
 saveRDS(
   res <- Slurm_collect(job),
   paste0(
     PROJECT_PATH,
-    "/simulations/02-missing/mcmc_right_prior_estimates.rds"
+    "/simulations/02-missing/mcmc_wrong_prior_estimates.rds"
     )
   )
 

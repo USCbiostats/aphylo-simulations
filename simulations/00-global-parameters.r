@@ -3,6 +3,14 @@ STAGING_PATH <- "/staging/pdt/vegayon/aphylo-simulations"
 PANTHER_PATH <- "/auto/pmd-02/pdt/pdthomas/panther/famlib/rel/PANTHER13.1_altVersion/hmmscoring/PANTHER13.1/books"
 PROJECT_PATH <- "/home/rcf-proj2/pdt/vegayon/aphylo-simulations"
 
+opts_sluRm$set_chdir(STAGING_PATH)
+opts_sluRm$set_opts(
+  partition     = "thomas",
+  account       = "lc_pdt",
+  time          = "05:00:00",
+  `mem-per-cpu` = "2G"
+)
+
 if (!dir.exists(STAGING_PATH))
   dir.create(STAGING_PATH)
 
@@ -11,7 +19,7 @@ NSAMPLES     <- 2000
 # MCMC
 mcmc.nbatch  <- 1e5
 mcmc.burnin  <- 2e4
-mcmc.thin    <- 100
+mcmc.thin    <- 50
 mcmc.nchains <- 4
 mcmc.multicore <- FALSE
 
@@ -37,15 +45,18 @@ mcmc_lite <- function(
     model,
     params  = params,
     control = list(
-      nbatch    = nbatch,
-      nchains   = nchains,
-      burnin    = burnin,
-      thin      = thin,
-      multicore = multicore
+      nbatch       = nbatch,
+      nchains      = nchains,
+      burnin       = burnin,
+      thin         = thin,
+      multicore    = multicore,
+      conv_checker = amcmc::gelman_convergence(1.05),
+      autostop     = 5e3
     )
     ,
-    priors = priors,
-    check.informative = FALSE
+    priors            = priors,
+    check.informative = FALSE,
+    reduced_pseq      = TRUE
   ),
   error = function(e) e
   )

@@ -1,52 +1,45 @@
-rm(list = ls())
 library(aphylo)
-load("simulations/02-gold-standard/data_and_functions.rda")
+library(sluRm)
 
-if (file.exists("simulations/02-gold-standard/mcmc_wrong_prior_estimates.rda")) {
-  load("simulations/02-gold-standard/mcmc_wrong_prior_estimates.rda")
-  start <- i - 1L
-  set.seed(curseed_MCMC_wrong_prior)
-} else {
-  set.seed(1223)
-  ans_MCMC_wrong_prior <- vector("list", nsim)
-  start <- 1
-}
+source("simulations/00-global-parameters.r")
+dat0 <- readRDS("simulations/dgp.rds") # [1:NSAMPLES]
+dat0 <- lapply(dat0, "[[", "atree")
 
-# Priors and starting point
-mcmc.par   <- c(rep(2/40, 2), rep(2/20, 3))
+# Setting the seed
+set.seed(111222)
+
+mcmc.par   <- matrix(runif(5*mcmc.nchains), ncol=5)
 mcmc.prior <- function(p) {
-  c(dbeta(p[1:2], 2, 39), dbeta(p[3:5], 2, 19))
+  dbeta(p, c(4, 4, 4, 4, 4), c(18, 18, 18, 18, 18))
 }
 
-for (i in 1:nsim) {
-  
-  # MCMC estimators
-  ans_MCMC_wrong_prior[[i]] <- mcmc_lite(
-    dat_obs[[i]], mcmc.par, priors = mcmc.prior
+job <- Slurm_lapply(
+  dat0,
+  mcmc_lite,
+  model      = dat ~ psi + mu + Pi,
+  params     = mcmc.par,
+  priors     = mcmc.prior,
+  nbatch     = mcmc.nbatch,
+  nchains    = mcmc.nchains,
+  burnin     = mcmc.burnin,
+  thin       = mcmc.thin,
+  njobs      = 55L,
+  mc.cores   = 4L,
+  multicore  = mcmc.multicore, # TRUE,
+  job_name   = "01-gold-standard-wrong-prior",
+  submit     = TRUE
+)
+
+saveRDS(job, paste0(PROJECT_PATH, "/simulations/01-gold-standard/job-wrong-prior.rds"))
+
+saveRDS(
+  res <- Slurm_collect(job),
+  paste0(
+    PROJECT_PATH,
+    "/simulations/01-gold-standard/mcmc_wrong_prior_estimates.rds"
+    )
   )
-  
-  # Printing on screen (and saving)
-  if (!(i %% 10)) {
-    message(sprintf("Simulation %04i/%04i (%6.2f %%) complete.", i, nsim, i/nsim*100))
-    
-    # Just in case we need to restart this... so we can continue where we were
-    curseed_MCMC_wrong_prior <- .Random.seed
-    
-    # Storing all objects
-    save(
-      curseed_MCMC_wrong_prior, ans_MCMC_wrong_prior, i,
-      file = "simulations/02-gold-standard/mcmc_wrong_prior_estimates.rda",
-      compress = FALSE
-      )
-  } else message(".", appendLF = FALSE)
-  
-}
 
-# Terminating
-message(sprintf("Simulation %04i/%04i (%6.2f %%) complete.", i, nsim, i/nsim*100))
+head(res)
 
-curseed_MCMC_wrong_prior <- .Random.seed
-save(curseed_MCMC_wrong_prior, ans_MCMC_wrong_prior, i,
-     file = "simulations/02-gold-standard/mcmc_wrong_prior_estimates.rda",
-     compress = FALSE
-     )
+job
