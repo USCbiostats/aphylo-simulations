@@ -43,7 +43,6 @@ accuracy <- cross_validation %>%
 dat[[accuracy$tree[9]]] %>%
   plot
   
-accuracy %>%
+eight_or_more <- accuracy %>%
   mutate(prop0s = `0`/(`1` + `0`)) %>%
-  filter(prop0s >= .3, prop0s <= .7, n_used >= 8) %>%
-  View
+  filter(prop0s >= .3, prop0s <= .7, n_used >= 8)

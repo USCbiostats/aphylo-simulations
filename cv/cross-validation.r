@@ -31,7 +31,7 @@ f <- function(d) {
 }
 
 
-ans_slurm <- Slurm_lapply(trees, f, njobs=40, mc.cores=5L, job_name="aphylo-cross-validation")
+ans_slurm <- Slurm_lapply(trees, f, njobs=100, mc.cores=4L, job_name="aphylo-cross-validation")
 saveRDS(ans_slurm, "cv/cross_validation-job.rds")
 saveRDS(Slurm_collect(ans_slurm), "cv/cross_validation.rds")
 
