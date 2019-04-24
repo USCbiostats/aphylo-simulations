@@ -6,7 +6,20 @@ source("simulations/00-global-parameters.r")
 trees <- readRDS("data/candidate_trees.rds")
 
 # Unlisting functions
-trees <- unlist(lapply(trees, function(d) lapply(1:Nann(d), function(i) d[i])), recursive = FALSE)
+trees <- lapply(names(trees), function(i) {
+  
+  tree <- trees[[i]]
+  ans  <- vector("list", Nann(tree))
+  
+  for (j in seq_along(ans))
+    ans[[j]] <- tree[j]
+  
+  names(ans) <- paste0(i, "-", 1:length(ans))
+  ans
+  
+})
+
+trees <- unlist(trees, recursive = FALSE)
 
 f <- function(d) {
   
