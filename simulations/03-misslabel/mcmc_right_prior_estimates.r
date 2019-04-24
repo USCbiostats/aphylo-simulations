@@ -3,7 +3,7 @@ library(sluRm)
 
 source("simulations/00-global-parameters.r")
 dat0 <- readRDS("simulations/dgp.rds") #[1:NSAMPLES]
-dat0 <- lapply(dat0[1:10], "[[", "atree_o")
+dat0 <- lapply(dat0, "[[", "atree_m")
 
 # Setting the seed
 set.seed(111222)
@@ -16,7 +16,7 @@ mcmc.prior <- function(p) {
 job <- Slurm_lapply(
   dat0,
   mcmc_lite,
-  model      = dat ~ mu + psi + Pi,
+  model      = dat ~ psi + mu + Pi,
   params     = mcmc.par,
   priors     = mcmc.prior,
   nsteps     = mcmc.nsteps,
@@ -26,20 +26,19 @@ job <- Slurm_lapply(
   njobs      = 55L,
   mc.cores   = 4L,
   multicore  = mcmc.multicore, # TRUE,
-  job_name   = "03-pub-bias-right-prior",
-  job_path   = STAGING_PATH,
+  job_name   = "03-misslabel-right-prior",
   submit     = TRUE
- )
+)
 
-saveRDS(job, paste0(PROJECT_PATH, "/simulations/03-pub-bias/right-prior-estimates-job.rds"))
+saveRDS(job, paste0(PROJECT_PATH, "/simulations/03-misslabel/right-prior-estimates-job.rds"))
 
 saveRDS(
   res <- Slurm_collect(job),
   paste0(
     PROJECT_PATH,
-    "/simulations/03-pub-bias/mcmc_right_prior_estimates.rds"
+    "/simulations/03-misslabel/mcmc_right_prior_estimates.rds"
     )
   )
 
-# res
-# job
+res
+job

@@ -3,7 +3,7 @@ library(sluRm)
 
 source("simulations/00-global-parameters.r")
 dat0 <- readRDS("simulations/dgp.rds") #[1:NSAMPLES]
-# dat0 <- lapply(dat0, "[[", "atree_m")
+dat0 <- lapply(dat0, "[[", "atree_i")
 
 # Setting the seed
 set.seed(111222)
@@ -26,17 +26,17 @@ job <- Slurm_lapply(
   njobs      = 55L,
   mc.cores   = 4L,
   multicore  = mcmc.multicore, # TRUE,
-  job_name   = "02-missing-right-prior",
+  job_name   = "02-missinglabel-right-prior",
   submit     = TRUE
 )
 
-saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-missing/right-prior-estimates-job.rds"))
+saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-missinglabel/right-prior-estimates-job.rds"))
 
 saveRDS(
   res <- Slurm_collect(job),
   paste0(
     PROJECT_PATH,
-    "/simulations/02-missing/mcmc_right_prior_estimates.rds"
+    "/simulations/02-missinglabel/mcmc_right_prior_estimates.rds"
     )
   )
 

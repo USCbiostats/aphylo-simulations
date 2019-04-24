@@ -21,9 +21,9 @@ library(ggplot2)
 library(magrittr)
 
 # Computing bias ---------------------------------------------------------------
-vnames <- c("mu0", "mu1", "Pi")
-bias_MCMC_right <- bias_calc("simulations/01-gold-standard/mcmc_right_prior_estimates.rds", "ans_MCMC_right_prior")
-bias_MCMC_wrong <- bias_calc("simulations/01-gold-standard/mcmc_wrong_prior_estimates.rds", "ans_MCMC_wrong_prior")
+vnames <- c("psi0", "psi1", "mu0", "mu1", "Pi")
+bias_MCMC_right <- bias_calc("simulations/02-missing/mcmc_right_prior_estimates.rds", "ans_MCMC_right_prior")
+bias_MCMC_wrong <- bias_calc("simulations/02-missing/mcmc_wrong_prior_estimates.rds", "ans_MCMC_wrong_prior")
 
 bias <- rbind(
   data.frame(Prior = "Wrong", bias_MCMC_wrong),
@@ -33,17 +33,15 @@ bias <- rbind(
 # Categorial variables ---------------------------------------------------------
 
 # Missings
-bias$Missing  <- 0L # This case has no missigness
-bias$miss_tag <- "No missings"
+bias$miss_tag <- interval_tags(bias$Missing, seq(0.1, 0.9, length.out = 5))
 
 # Tree size
-bias$size_tag <- interval_tags(bias$TreeSize, quantile(bias$TreeSize, na.rm = TRUE),
-                               digits = 0L)
+bias$size_tag <- interval_tags(bias$TreeSize, quantile(bias$TreeSize, na.rm = TRUE))
 
 # NLeafs/TreeSize
 bias$PropLeafs <- with(bias, NLeafs/TreeSize)
 bias$PropLeafs_tag <- interval_tags(bias$PropLeafs, quantile(bias$PropLeafs, na.rm=TRUE))
 
-saveRDS(bias, file = "simulations/01-gold-standard/bias.rds")
+saveRDS(bias, file = "simulations/02-missing/bias.rds")
 
 

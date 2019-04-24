@@ -62,7 +62,7 @@ bias_calci <- function(x, par0, tree) {
   
 }
 
-bias_calc <- function(fn, objname) {
+bias_calc <- function(fn, objname, ncores = 4L) {
   
   # Retrieving parameters and true trees
   parameters <- lapply(dat, "[[", "par")
@@ -77,7 +77,7 @@ bias_calc <- function(fn, objname) {
   ids <- which(sapply(env[[objname]], length) > 0)
   
   message("Computing bias ...", appendLF = FALSE)
-  ans <- parallel::mcMap(bias_calci, env[[objname]][ids], parameters[ids], trees[ids], mc.cores=10L)
+  ans <- parallel::mcMap(bias_calci, env[[objname]][ids], parameters[ids], trees[ids], mc.cores=ncores)
   ans <- do.call(rbind, ans)
   message("done.")
   
@@ -88,12 +88,12 @@ bias_calc <- function(fn, objname) {
 
 # Creates nice interval tags in the form of [a,b)...[a,z] (last one closed).
 # All numbers must be within the interval
-interval_tags <- function(x, marks) {
+interval_tags <- function(x, marks, digits = 1L) {
   
   # Generating labels
   n <- length(marks)
-  l <- c(sprintf("[%.1f, %.1f)", marks[-n][-(n-1)], marks[-n][-1]),
-         sprintf("[%.1f, %.1f]", marks[n-1], marks[n])
+  l <- c(sprintf(paste0("[%.", digits, "f, %.", digits, "f)"), marks[-n][-(n-1)], marks[-n][-1]),
+         sprintf(paste0("[%.", digits, "f, %.", digits, "f]"), marks[n-1], marks[n])
   )
   
   # Finding intervals

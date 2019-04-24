@@ -52,7 +52,7 @@ mcmc_lite <- function(
       burnin       = burnin,
       thin         = thin,
       multicore    = multicore,
-      conv_checker = amcmc::gelman_convergence(1.05),
+      conv_checker = fmcmc::convergence_gelman(1.05),
       autostop     = 5e3
     )
     ,

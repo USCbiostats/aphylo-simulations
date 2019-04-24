@@ -3,20 +3,20 @@ library(sluRm)
 
 source("simulations/00-global-parameters.r")
 dat0 <- readRDS("simulations/dgp.rds") #[1:NSAMPLES]
-dat0 <- lapply(dat0[1:10], "[[", "atree_o")
+dat0 <- lapply(dat0, "[[", "atree_i")
 
 # Setting the seed
 set.seed(111222)
 
 mcmc.par   <- matrix(runif(5*mcmc.nchains), ncol=5)
 mcmc.prior <- function(p) {
-  dbeta(p, c(2, 2, 2, 2, 2), c(38, 38, 38, 38, 38))
+  dbeta(p, c(2, 2, 2, 2, 2), c(18, 18, 18, 18, 18))
 }
 
 job <- Slurm_lapply(
   dat0,
   mcmc_lite,
-  model      = dat ~ mu + psi + Pi,
+  model      = dat ~ psi + mu + Pi,
   params     = mcmc.par,
   priors     = mcmc.prior,
   nsteps     = mcmc.nsteps,
@@ -26,20 +26,19 @@ job <- Slurm_lapply(
   njobs      = 55L,
   mc.cores   = 4L,
   multicore  = mcmc.multicore, # TRUE,
-  job_name   = "03-pub-bias-right-prior",
-  job_path   = STAGING_PATH,
+  job_name   = "02-missinglabel-wrong-prior",
   submit     = TRUE
- )
+)
 
-saveRDS(job, paste0(PROJECT_PATH, "/simulations/03-pub-bias/right-prior-estimates-job.rds"))
+saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-missinglabel/wrong-prior-estimates-job.rds"))
 
 saveRDS(
   res <- Slurm_collect(job),
   paste0(
     PROJECT_PATH,
-    "/simulations/03-pub-bias/mcmc_right_prior_estimates.rds"
+    "/simulations/02-missinglabel/mcmc_wrong_prior_estimates.rds"
     )
   )
 
-# res
-# job
+res
+job

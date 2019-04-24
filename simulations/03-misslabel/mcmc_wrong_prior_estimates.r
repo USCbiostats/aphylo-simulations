@@ -26,17 +26,17 @@ job <- Slurm_lapply(
   njobs      = 55L,
   mc.cores   = 4L,
   multicore  = mcmc.multicore, # TRUE,
-  job_name   = "02-missing-wrong-prior",
+  job_name   = "03-misslabel-wrong-prior",
   submit     = TRUE
 )
 
-saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-missing/wrong-prior-estimates-job.rds"))
+saveRDS(job, paste0(PROJECT_PATH, "/simulations/03-misslabel/wrong-prior-estimates-job.rds"))
 
 saveRDS(
   res <- Slurm_collect(job),
   paste0(
     PROJECT_PATH,
-    "/simulations/02-missing/mcmc_wrong_prior_estimates.rds"
+    "/simulations/03-misslabel/mcmc_wrong_prior_estimates.rds"
     )
   )
 

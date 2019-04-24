@@ -31,7 +31,7 @@ for (i in 1:4) {
     `2` = "mid-small",
     `3` = "mid-large",
     `4` = "large"
-  )), width = 5, height = 5)
+  )), width = 6, height = 7)
   
   # Nobservations in this group
   nobs <- bias %>% dplyr::filter(as.integer(size_tag) == i) %>%
@@ -41,15 +41,18 @@ for (i in 1:4) {
   # Creating the plot
   p <- bias %>% dplyr::filter(as.integer(size_tag) == i) %>%
     # Creating the boxplot
-    ggplot(aes(parameter, bias)) + geom_boxplot(aes(colour = Prior)) +
-    
+    ggplot(aes(parameter, bias)) +
+    geom_violin(aes(fill = Prior)) +
+    theme_minimal(base_family = "serif") +
     # Adding an horizontal line, and spliting my % of missings
-    geom_hline(yintercept = 0, lty=2) + facet_grid(miss_tag ~ .) +
+    geom_hline(yintercept = 0, lty=2) +
+    facet_grid(miss_tag ~ .) +
+    geom_hline(yintercept = 2/20 - 2/40, lty = 3, col="red") +
     ylim(-.2,.2) + ylab("Bias") + xlab("") + 
-    labs(
-      title = "Empirical Bias",
-      subtitle = paste("Includes trees of size",levels(bias$size_tag)[i])
-    ) +
+    # labs(
+    #   title = "Empirical Bias",
+    #   subtitle = paste("Includes trees of size",levels(bias$size_tag)[i])
+    # ) +
     scale_x_discrete(
       labels=c(
         mu0  = expression(mu[paste(0,1)]),
@@ -59,8 +62,10 @@ for (i in 1:4) {
         eta0 = expression(eta[0]),
         eta1 = expression(eta[0]),
         Pi   = expression(pi)
-      )
-    )
+      ),
+      limits = c("mu0", "mu1", "psi0", "psi1", "Pi")
+    ) +
+    scale_color_grey(aesthetics = "fill")
   
   # Adding a title
   message(
