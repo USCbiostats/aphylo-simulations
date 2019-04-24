@@ -5,6 +5,9 @@ library(sluRm)
 source("simulations/00-global-parameters.r")
 trees <- readRDS("data/candidate_trees.rds")
 
+opts_sluRm$set_opts(account="lc_pdt", partition="thomas")
+opts_sluRm$verbose_on()
+
 # Unlisting functions
 trees <- lapply(names(trees), function(i) {
   
@@ -44,9 +47,8 @@ f <- function(d) {
 }
 
 
-ans_slurm <- Slurm_lapply(trees, f, njobs=100, mc.cores=4L, job_name="aphylo-cross-validation")
+ans_slurm <- Slurm_lapply(trees, f, njobs=50, mc.cores=4L, job_name="aphylo-cross-validation")
 saveRDS(ans_slurm, "cv/cross_validation-job.rds")
 saveRDS(Slurm_collect(ans_slurm), "cv/cross_validation.rds")
-
 
 
