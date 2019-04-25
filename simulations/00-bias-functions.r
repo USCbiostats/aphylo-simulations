@@ -86,6 +86,9 @@ bias_calc <- function(fn, dat) {
     dat_[[paste0(coef_, "_covered95")]] <- 
       (dat_[[paste0(coef_, "_lb")]] <= dat_[[paste0(coef_, "_pop")]]) &
       (dat_[[paste0(coef_, "_ub")]] >= dat_[[paste0(coef_, "_pop")]])
+    
+    dat_[[paste0(coef_, "_bias")]] <-
+      dat_[[paste0(coef_, "_estimated")]] - dat_[[paste0(coef_, "_pop")]]
   }
   
   dat_
