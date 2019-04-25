@@ -55,7 +55,7 @@ p_wrong <-
   ylab("Proportion of Missing Labels") +
   scale_fill_grey()
 
-ggsave("simulations/03-misslabel/bias_wrong_prior.pdf", width = 7, height = 4)
+ggsave("simulations/03-misslabel/bias_plots_03_wrong_prior.pdf", width = 7, height = 4)
 
 p_right <-
   bias %>% dplyr::filter(Prior == "Right") %>%
@@ -73,6 +73,37 @@ p_right <-
   ylab("Proportion of Missing Labels") +
   scale_fill_grey()
 
-ggsave("simulations/03-misslabel/bias_wrong_right.pdf", width = 7, height = 4)
+ggsave("simulations/03-misslabel/bias_plots_03_right_prior.pdf", width = 7, height = 4)
 
+# Prediction score -------------------------------------------------------------
+library(tidyr)
+bias <- readRDS("simulations/03-misslabel/bias.rds")
 
+bias <- bias %>%
+  as_tibble %>%
+  filter(Missing < 1, PropOf0 > 0, PropOf0 < 1) %>%
+  mutate(
+    pscore      = pscore/pscore_worse,
+    pscore_rand = pscore_rand/pscore_worse,
+  ) %>%
+  select(
+    index, Prior, size_tag, miss_tag, PropLeafs_tag,
+    pscore, pscore_rand) %>%
+  gather(
+    key = "Type",
+    value = "Score",
+    starts_with("pscore")
+  ) %>%
+  mutate(Type = if_else(Type == "pscore", "Observed", "Random")) 
+
+ggplot(bias, aes(Score, y = miss_tag)) +
+  geom_density_ridges() +
+  facet_grid(Prior ~ Type) +
+  theme_minimal(base_family = "serif") +
+  xlab("Prediction Score") +
+  ylab("") +
+  xlim(0, .6) +
+  theme(axis.text.x = element_text(angle=45, hjust = 1)) +
+  coord_flip()
+
+ggsave("simulations/03-misslabel/prediction_scores.pdf", width=6, height=6)

@@ -11,7 +11,9 @@ bias <- readRDS("simulations/01-gold-standard/bias.rds")
 bias <- bias %>%
   as_tibble %>%
   filter(Missing < 1, PropOf0 > 0, PropOf0 < 1) %>%
-  select(index, Prior, size_tag, miss_tag, PropLeafs_tag, matches("_bias$")) %>%
+  select(
+    index, Prior, size_tag, miss_tag, PropLeafs_tag, matches("_bias$"),
+    pscore, pscore_rand, pscore_worse) %>%
   gather(
     key = "parameter",
     value = "bias",
@@ -26,7 +28,7 @@ graphics.off()
 
 # Clearing plot space and creating the pdf
 
-pdf("simulations/01-gold-standard/bias_plots.pdf", width = 6, height = 4)
+pdf("simulations/01-gold-standard/bias_plots_01.pdf", width = 6, height = 4)
 
 # Nobservations in this group
 nobs <- bias %>% 
@@ -68,3 +70,34 @@ print(p)
 
 dev.off()
  
+# Prediction score -------------------------------------------------------------
+library(tidyr)
+bias <- readRDS("simulations/01-gold-standard/bias.rds")
+
+bias <- bias %>%
+  as_tibble %>%
+  filter(Missing < 1, PropOf0 > 0, PropOf0 < 1) %>%
+  mutate(
+    pscore      = pscore/pscore_worse,
+    pscore_rand = pscore_rand/pscore_worse,
+  ) %>%
+  select(
+    index, Prior, size_tag, miss_tag, PropLeafs_tag,
+    pscore, pscore_rand) %>%
+  gather(
+    key = "Type",
+    value = "Score",
+    starts_with("pscore")
+  ) %>%
+  mutate(Type = if_else(Type == "pscore", "Observed", "Random")) 
+
+ggplot(bias, aes(y=Score, x=Type)) +
+  geom_violin() +
+  theme_minimal(base_family = "serif") +
+  facet_grid(~size_tag) + 
+  ylab("Prediction Score") +
+  theme(axis.text.x = element_text(angle=45, hjust = 1)) +
+  xlab("") 
+
+ggsave("simulations/01-gold-standard/prediction_scores.pdf", width=6, height=4)
+  

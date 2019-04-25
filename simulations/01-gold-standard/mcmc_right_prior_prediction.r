@@ -3,8 +3,8 @@ rm(list = ls())
 library(aphylo)
 
 
-dat <- readRDS("simulations/dgp.rds")
-ans_MCMC_right_prior <- readRDS("simulations/01-gold-standard/mcmc_right_prior_estimates.rds")
+dat       <- readRDS("simulations/dgp.rds")
+estimates <- readRDS("simulations/01-gold-standard/mcmc_right_prior_estimates.rds")
 
 source("simulations/summarize_predictions.r")
 
