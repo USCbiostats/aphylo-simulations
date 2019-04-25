@@ -101,8 +101,8 @@ PANTHER_FILES <- paste0(PANTHER_FILES, "/tree.tree")
 
 # Generating random data w/ trees of size 50
 set.seed(1)
-SAMPLED_TREE_FILES <- sample(PANTHER_FILES, NSAMPLES, TRUE)
-PANTHER_TREES      <- Slurm_lapply(SAMPLED_TREE_FILES, read_panther,
+# SAMPLED_TREE_FILES <- sample(PANTHER_FILES, NSAMPLES, TRUE)
+PANTHER_TREES      <- Slurm_lapply(PANTHER_FILES, read_panther,
   job_name = "reading_trees", njobs = 20, mc.cores=4L)
 PANTHER_TREES      <- Slurm_collect(PANTHER_TREES)
 PANTHER_TREES      <- lapply(PANTHER_TREES, "[[", "tree")

@@ -42,6 +42,9 @@ mcmc_lite <- function(
   reduced_pseq. = TRUE
 ) {
   
+  # Making sure it runs in the same place
+  environment(model) <- environment()
+
    # Try to estimate the model
   ans <- tryCatch(aphylo_mcmc(
     model,
@@ -53,11 +56,11 @@ mcmc_lite <- function(
       thin         = thin,
       multicore    = multicore,
       conv_checker = fmcmc::convergence_gelman(1.05),
-      autostop     = 5e3
+      autostop     = 1e4
     )
     ,
     priors            = priors,
-    check.informative = FALSE,
+    check_informative = FALSE,
     reduced_pseq      = reduced_pseq.
   ),
   error = function(e) e
