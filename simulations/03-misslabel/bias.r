@@ -34,7 +34,7 @@ bias <- rbind(
 # Categorial variables ---------------------------------------------------------
 
 # Missings
-bias$miss_tag <- interval_tags(bias$Missing, seq(0.1, 0.9, length.out = 5))
+bias$miss_tag <- interval_tags(bias$Missing, seq(0, 1, length.out = 5))
 
 saveRDS(bias, file = "simulations/03-misslabel/bias.rds")
 

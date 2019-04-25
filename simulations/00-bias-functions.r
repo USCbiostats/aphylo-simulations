@@ -17,13 +17,20 @@ bias_calc <- function(fn, dat) {
       quantiles = parallel::mclapply(tree, function(t_) {
         apply(do.call(rbind, t_$hist), 2L, quantile, probs = c(0.025, .975))
       }, mc.cores=1L),
-      NLeafs    = unlist(parallel::mclapply(tree, Ntip)),
-      TreeSize  = NLeafs + unlist(parallel::mclapply(tree, Nnode)),
+      pscore = parallel::mclapply(tree, function(t_) {
+        tryCatch(prediction_score(t_), error=function(e) e)
+      }, mc.cores = 1L),
+      pscore_rand  = sapply(pscore, "[[", "random"),
+      pscore_worse = sapply(pscore, "[[", "worse"),
+      pscore       = sapply(pscore, "[[", "obs"),
+      NLeafs    = unlist(parallel::mclapply(tree, Ntip, mc.cores = 1L)),
+      TreeSize  = NLeafs + unlist(parallel::mclapply(tree, Nnode, mc.cores = 1L)),
       Missing   = unlist(parallel::mclapply(tree, function(i) sum(i$dat$tip.annotation == 9L), mc.cores=1L)),
       PropOf0   = unlist(parallel::mclapply(tree, function(i) sum(i$dat$tip.annotation == 0L), mc.cores=1L)),
       PropOf0   = PropOf0/(NLeafs - Missing),
       Missing   = Missing/NLeafs
     ) 
+  message("Metadata OK...")
   
   # Merging with population data
   coefs_pop <- tibble(
@@ -46,12 +53,14 @@ bias_calc <- function(fn, dat) {
     cbind(index = index, do.call(rbind, estimates)) %>%
     as_tibble %>%
     set_colnames(c("index", paste0(colnames(.)[-1], "_estimated")))
+  message("Coefficients OK...")
   
   # Extracting variances
   var_est <-  meta %$%
     cbind(index = index, do.call(rbind, variances)) %>%
     as_tibble %>%
     set_colnames(c("index", paste0(colnames(.)[-1], "_var")))
+  message("Variances OK...")
   
   # Extracting lower and upper bounds
   bounds <- meta %>%
@@ -76,6 +85,7 @@ bias_calc <- function(fn, dat) {
     left_join(var_est, by = "index") %>%
     left_join(bounds, by = "index") %>%
     mutate(index = as.integer(index))
+  message("All together OK...")
   
   coefs_names <- colnames(dat_)[grepl("[_]estimated$",colnames(dat_))] %>%
     gsub("[_]estimated$", "", .) %>%
@@ -93,6 +103,7 @@ bias_calc <- function(fn, dat) {
       dat_[[paste0(coef_, "_estimated")]] - dat_[[paste0(coef_, "_pop")]]
   }
 
+  message("Coverage and bias OK...")
   # Tree size
   dat_$size_tag <- interval_tags(dat_$NLeafs, quantile(dat_$NLeafs, na.rm = TRUE),
                                digits = 0L)
