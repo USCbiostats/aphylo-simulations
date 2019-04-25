@@ -12,15 +12,15 @@ bias_calc <- function(fn, dat) {
     ) %>%
     filter(!is_error) %>%
     mutate(
-      estimates = parallel::mclapply(tree, coef),
-      variances = parallel::mclapply(tree, function(i) diag(vcov(i))),
+      estimates = parallel::mclapply(tree, coef, mc.cores=1L),
+      variances = parallel::mclapply(tree, function(i) diag(vcov(i)), mc.cores=1L),
       quantiles = parallel::mclapply(tree, function(t_) {
         apply(do.call(rbind, t_$hist), 2L, quantile, probs = c(0.025, .975))
-      }),
+      }, mc.cores=1L),
       NLeafs    = unlist(parallel::mclapply(tree, Ntip)),
       TreeSize  = NLeafs + unlist(parallel::mclapply(tree, Nnode)),
-      Missing   = unlist(parallel::mclapply(tree, function(i) sum(i$dat$tip.annotation == 9L))),
-      PropOf0   = unlist(parallel::mclapply(tree, function(i) sum(i$dat$tip.annotation == 0L))),
+      Missing   = unlist(parallel::mclapply(tree, function(i) sum(i$dat$tip.annotation == 9L), mc.cores=1L)),
+      PropOf0   = unlist(parallel::mclapply(tree, function(i) sum(i$dat$tip.annotation == 0L), mc.cores=1L)),
       PropOf0   = PropOf0/(NLeafs - Missing),
       Missing   = Missing/NLeafs
     ) 
@@ -92,6 +92,15 @@ bias_calc <- function(fn, dat) {
     dat_[[paste0(coef_, "_bias")]] <-
       dat_[[paste0(coef_, "_estimated")]] - dat_[[paste0(coef_, "_pop")]]
   }
+
+  # Tree size
+  dat_$size_tag <- interval_tags(dat_$NLeafs, quantile(dat_$NLeafs, na.rm = TRUE),
+                               digits = 0L)
+
+  # NLeafs/TreeSize
+  dat_$PropLeafs <- with(dat_, NLeafs/TreeSize)
+  dat_$PropLeafs_tag <- interval_tags(dat_$PropLeafs, quantile(dat_$PropLeafs, na.rm=TRUE))
+
   
   dat_
 }

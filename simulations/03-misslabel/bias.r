@@ -36,13 +36,6 @@ bias <- rbind(
 # Missings
 bias$miss_tag <- interval_tags(bias$Missing, seq(0.1, 0.9, length.out = 5))
 
-# Tree size
-bias$size_tag <- interval_tags(bias$TreeSize, quantile(bias$TreeSize, na.rm = TRUE))
-
-# NLeafs/TreeSize
-bias$PropLeafs <- with(bias, NLeafs/TreeSize)
-bias$PropLeafs_tag <- interval_tags(bias$PropLeafs, quantile(bias$PropLeafs, na.rm=TRUE))
-
 saveRDS(bias, file = "simulations/03-misslabel/bias.rds")
 
 
