@@ -23,8 +23,8 @@ library(dplyr)
 library(aphylo)
 
 # Computing bias ---------------------------------------------------------------
-bias_MCMC_right <- bias_calc("simulations/02-missing/mcmc_right_prior_estimates.rds", dat)
-bias_MCMC_wrong <- bias_calc("simulations/02-missing/mcmc_wrong_prior_estimates.rds", dat)
+bias_MCMC_right <- bias_calc("simulations/02-missinglabel/mcmc_right_prior_estimates.rds", dat)
+bias_MCMC_wrong <- bias_calc("simulations/02-missinglabel/mcmc_wrong_prior_estimates.rds", dat)
 
 bias <- rbind(
   data.frame(Prior = "Wrong", bias_MCMC_wrong),
@@ -43,6 +43,6 @@ bias$size_tag <- interval_tags(bias$TreeSize, quantile(bias$TreeSize, na.rm = TR
 bias$PropLeafs <- with(bias, NLeafs/TreeSize)
 bias$PropLeafs_tag <- interval_tags(bias$PropLeafs, quantile(bias$PropLeafs, na.rm=TRUE))
 
-saveRDS(bias, file = "simulations/02-missing/bias.rds")
+saveRDS(bias, file = "simulations/02-missinglabel/bias.rds")
 
 
