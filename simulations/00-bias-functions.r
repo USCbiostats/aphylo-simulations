@@ -57,8 +57,12 @@ bias_calc <- function(fn, dat) {
     select(index, quantiles) %>%
     mutate(
       lb = lapply(quantiles, "[", i=1, j=),
-      ub = lapply(quantiles, "[", i=1, j=)
-    ) %$%
+      ub = lapply(quantiles, "[", i=2, j=)
+    ) %>%
+    filter(
+      sapply(lb, inherits, what="matrix"),
+      sapply(ub, inherits, what="matrix")
+      ) %$%
     cbind(
       index = index,
       {do.call(rbind, lb) %>% set_colnames(paste0(colnames(.), "_lb"))},
