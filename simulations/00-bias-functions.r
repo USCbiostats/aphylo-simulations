@@ -19,9 +19,10 @@ bias_calc <- function(fn, dat) {
       }),
       NLeafs    = unlist(parallel::mclapply(tree, Ntip)),
       TreeSize  = NLeafs + unlist(parallel::mclapply(tree, Nnode)),
-      Missings  = unlist(parallel::mclapply(tree, function(i) sum(i$dat$tip.annotation == 9L))),
+      Missing   = unlist(parallel::mclapply(tree, function(i) sum(i$dat$tip.annotation == 9L))),
       PropOf0   = unlist(parallel::mclapply(tree, function(i) sum(i$dat$tip.annotation == 0L))),
-      PropOf0   = PropOf0/(NLeafs - Missings)
+      PropOf0   = PropOf0/(NLeafs - Missing),
+      Missing   = Missing/NLeafs
     ) 
   
   # Merging with population data
@@ -59,10 +60,7 @@ bias_calc <- function(fn, dat) {
       lb = lapply(quantiles, "[", i=1, j=),
       ub = lapply(quantiles, "[", i=2, j=)
     ) %>%
-    filter(
-      sapply(lb, inherits, what="matrix"),
-      sapply(ub, inherits, what="matrix")
-      ) %$%
+    filter(sapply(quantiles, inherits, what="matrix")) %$%
     cbind(
       index = index,
       {do.call(rbind, lb) %>% set_colnames(paste0(colnames(.), "_lb"))},
