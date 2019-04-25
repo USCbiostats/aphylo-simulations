@@ -52,23 +52,25 @@ closests_0s_and_1s <- function(aphylo, expected, predicted) {
     )
 
 }
+# 
+# current <- 0L
+# ans <- lapply(cross_validation, function(d) {
+#   current <<- current + 1L
+#   cat("Going for ", names(cross_validation)[current], "\n")
+#   closests_0s_and_1s(
+#     d$estimates$dat$tree,
+#     d$pscore$expected,
+#     d$pscore$predicted
+#   )
+# })
+# 
+# ans <- do.call(rbind, ans)
+# ans$tree <- gsub("[.][0-9]+$", "", rownames(ans))
+# rownames(ans) <- NULL
+# 
+# readr::write_csv(ans, "cv/neighbors.csv")
 
-current <- 0L
-ans <- lapply(cross_validation, function(d) {
-  current <<- current + 1L
-  cat("Going for ", names(cross_validation)[current], "\n")
-  closests_0s_and_1s(
-    d$estimates$dat$tree,
-    d$pscore$expected,
-    d$pscore$predicted
-  )
-})
-
-ans <- do.call(rbind, ans)
-ans$tree <- gsub("[.][0-9]+$", "", rownames(ans))
-rownames(ans) <- NULL
-
-readr::write_csv(ans, "cv/neighbors.csv")
+ans <- readr::read_csv("cv/neighbors.csv")
 
 # Plots ------------------------------------------------------------------------
 
