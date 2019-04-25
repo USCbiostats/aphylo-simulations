@@ -19,11 +19,12 @@ dat <- readRDS("simulations/dgp.rds")
 
 library(ggplot2)
 library(magrittr)
+library(dplyr)
+library(aphylo)
 
 # Computing bias ---------------------------------------------------------------
-vnames <- c("mu0", "mu1", "Pi")
-bias_MCMC_right <- bias_calc("simulations/01-gold-standard/mcmc_right_prior_estimates.rds", "ans_MCMC_right_prior")
-bias_MCMC_wrong <- bias_calc("simulations/01-gold-standard/mcmc_wrong_prior_estimates.rds", "ans_MCMC_wrong_prior")
+bias_MCMC_right <- bias_calc("simulations/01-gold-standard/mcmc_right_prior_estimates.rds", dat)
+bias_MCMC_wrong <- bias_calc("simulations/01-gold-standard/mcmc_wrong_prior_estimates.rds", dat)
 
 bias <- rbind(
   data.frame(Prior = "Wrong", bias_MCMC_wrong),

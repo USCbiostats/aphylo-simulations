@@ -1,89 +1,94 @@
-# Function to calculate the coverage 
-#' @param x An object of class `ahpylo_estimates`
-#' @param par0 The truth vector of parameters.
-#' @param pcent Type I error.
-coverage <- function(x, par0, pcent) {
-  quant <- do.call(rbind, x$hist)
-  quant <- apply(quant, 2, quantile, c(pcent/2, 1 - pcent/2))
+bias_calc <- function(fn, dat) {
   
-  (par0 >= quant[1, ]) & (par0 <= quant[2, ])
-}
-
-# Function to measure bias
-bias_calci <- function(x, par0, tree) {
+  estimates <- readRDS(fn)
   
-  if (!length(x))
-    return(NULL)
+  # Extracting the main components, this object will be used throughout the
+  # function. At the very end it will be reconciled with the rest of the by-prod
+  meta <- estimates %>%
+    tibble(tree = .) %>%
+    mutate(
+      index    = 1:n(),
+      is_error = !sapply(tree, inherits, "aphylo_estimates")
+    ) %>%
+    filter(!is_error) %>%
+    mutate(
+      estimates = parallel::mclapply(tree, coef),
+      variances = parallel::mclapply(tree, function(i) diag(vcov(i))),
+      quantiles = parallel::mclapply(tree, function(t_) {
+        apply(do.call(rbind, t_$hist), 2L, quantile, probs = c(0.025, .975))
+      }),
+      NLeafs    = unlist(parallel::mclapply(tree, Ntip)),
+      TreeSize  = NLeafs + unlist(parallel::mclapply(tree, Nnode)),
+      Missings  = unlist(parallel::mclapply(tree, function(i) sum(i$dat$tip.annotation == 9L))),
+      PropOf0   = unlist(parallel::mclapply(tree, function(i) sum(i$dat$tip.annotation == 0L))),
+      PropOf0   = PropOf0/(NLeafs - Missings)
+    ) 
   
-  # Names of the objects that will be stored
-  # vnames <- names(coef(x))
-  cnames <- c(
-    "TreeSize",
-    "NLeafs",
-    "Missings",
-    "PropOf0",
-    paste(vnames, "pop", sep="_"),
-    paste(vnames, "estimated", sep="_"),
-    paste(vnames, "bias", sep="_"),
-    paste(vnames, "var", sep="_"),
-    paste(vnames, "covered95", sep="_")
+  # Merging with population data
+  coefs_pop <- tibble(
+    index = 1L:length(dat),
+    par   = lapply(dat, "[[", "par")
+  ) %>%
+    mutate(is_error = sapply(par, length) == 0) %>%
+    filter(!is_error) %>%
+    select(-is_error) %$%
+    cbind(index, do.call(rbind, par)) %>%
+    as_tibble %>%
+    mutate(index = as.integer(index))
+  
+  colnames(coefs_pop)[c(-1, -ncol(coefs_pop))] <- paste0(
+    colnames(coefs_pop)[c(-1, -ncol(coefs_pop))], "_pop"
   )
   
-  # Checking if it was able to solve it or not
-  if (inherits(x, "error"))
-    return(structure(rep(NA, length(cnames)), names = cnames))
+  # Extracting coefficients
+  coefs_est <- meta %$%
+    cbind(index = index, do.call(rbind, estimates)) %>%
+    as_tibble %>%
+    set_colnames(c("index", paste0(colnames(.)[-1], "_estimated")))
   
-  # Calculating the proportion of 0s out of the total annotated
-  prop_of_0s <- aphylo:::fast_table_using_labels(tree$tip.annotation, c(0L, 1L))
-  prop_of_0s <- prop_of_0s[1]/sum(prop_of_0s)
+  # Extracting variances
+  var_est <-  meta %$%
+    cbind(index = index, do.call(rbind, variances)) %>%
+    as_tibble %>%
+    set_colnames(c("index", paste0(colnames(.)[-1], "_var")))
   
-  # Number of offspring and internal nodes
-  treesize <- length(tree$offspring)
-  nleafs   <- nrow(tree$tip.annotation)
+  # Extracting lower and upper bounds
+  bounds <- meta %>%
+    select(index, quantiles) %>%
+    mutate(
+      lb = lapply(quantiles, "[", i=1, j=),
+      ub = lapply(quantiles, "[", i=1, j=)
+    ) %$%
+    cbind(
+      index = index,
+      {do.call(rbind, lb) %>% set_colnames(paste0(colnames(.), "_lb"))},
+      {do.call(rbind, ub) %>% set_colnames(paste0(colnames(.), "_ub"))}
+    ) %>%
+    as_tibble
   
-  vrs <- diag(x$varcovar)
-  if (length(vrs) == 4)
-    vrs <- c(vrs, NA)
+  # Final dataset
+  dat_ <- meta %>%
+    select(-estimates, -tree, -is_error, -variances, -quantiles) %>%
+    left_join(coefs_pop, by = "index") %>%
+    left_join(coefs_est, by = "index") %>%
+    left_join(var_est, by = "index") %>%
+    left_join(bounds, by = "index") %>%
+    mutate(index = as.integer(index))
   
-  structure(
-    c(
-      treesize,
-      nleafs,
-      par0["drop"],
-      prop_of_0s,
-      par0[vnames],
-      coef(x),
-      coef(x) - par0[vnames],
-      vrs,
-      coverage(x, par0[vnames], .05)
-    ),
-    names = cnames
-  )
+  coefs_names <- colnames(dat_)[grepl("[_]estimated$",colnames(dat_))] %>%
+    gsub("[_]estimated$", "", .) %>%
+    unique()
   
-}
-
-bias_calc <- function(fn, objname, ncores = 4L) {
+  # Computing coverage
+  for (coef_ in coefs_names) {
+    
+    # Bounds
+    dat_[[paste0(coef_, "_covered95")]] <- 
+      (dat_[[paste0(coef_, "_lb")]] <= dat_[[paste0(coef_, "_pop")]]) &
+      (dat_[[paste0(coef_, "_ub")]] >= dat_[[paste0(coef_, "_pop")]])
+  }
   
-  # Retrieving parameters and true trees
-  parameters <- lapply(dat, "[[", "par")
-  trees      <- lapply(dat, "[[", "atree")
-  
-  
-  # Reading the results
-  env <- new.env()
-  assign(objname, readRDS(fn), envir = env)
-  
-  # Which ones are complete?
-  ids <- which(sapply(env[[objname]], length) > 0)
-  
-  message("Computing bias ...", appendLF = FALSE)
-  ans <- parallel::mcMap(bias_calci, env[[objname]][ids], parameters[ids], trees[ids], mc.cores=ncores)
-  ans <- do.call(rbind, ans)
-  message("done.")
-  
-  ans <- cbind(index = ids, ans)
-  
-  ans[complete.cases(ans[,-ncol(ans)]),,drop=FALSE]
+  dat_
 }
 
 # Creates nice interval tags in the form of [a,b)...[a,z] (last one closed).
