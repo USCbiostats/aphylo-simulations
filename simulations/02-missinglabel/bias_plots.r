@@ -33,7 +33,10 @@ parameter_labels <- c(
   Pi   = "pi"
 )
 
-bias$parameter <- parameter_labels[bias$parameter]
+bias$parameter <- factor(
+  match(bias$parameter, names(parameter_labels)),
+  levels = 1:length(parameter_labels),
+  labels = parameter_labels)
 
 #+ plotting, echo=TRUE
 # Plot -------------------------------------------------------------------------
@@ -106,4 +109,4 @@ ggplot(bias, aes(Score, y = miss_tag)) +
   theme(axis.text.x = element_text(angle=45, hjust = 1)) +
   coord_flip()
 
-ggsave("simulations/02-missinglabel/prediction_scores.pdf", width=6, height=6)
+ggsave("simulations/02-missinglabel/prediction_scores-02.pdf", width=6, height=6)

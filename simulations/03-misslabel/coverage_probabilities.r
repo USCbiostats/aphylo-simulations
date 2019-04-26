@@ -22,7 +22,14 @@ summ <- bias %>%
   # See https://www.sharelatex.com/learn/Errors/Illegal_unit_of_measure_(pt_inserted)
   ungroup %>%
   mutate(Size = paste0("{", size_tag, "}")) %>%
-  select(-size_tag)
+  select(-size_tag) %>%
+  rename(
+    `$\\mu_{01}$` = mu0,
+    `$\\mu_{10}$` = mu1,
+    `$\\psi_{01}$` = psi0,
+    `$\\psi_{10}$` = psi1,
+    `$\\pi$` = Pi,
+  )
 
 fact <- summ$Prior
 summ %>% 
@@ -30,14 +37,18 @@ summ %>%
   split(., fact) %>%
   `attr<-`("subheadings", paste(names(.), "Prior")) %>%
   xtableList(
-    caption = "Coverage probability at the 95\\% level by prior (right/wrong) and size of the tree.  Estimations with the \\emph{right} prior use the same priors as the data generating process, whereas estimations with the \\emph{wrong} prior used a prior that had a mean twice as large as the data generating process.",
+    caption = paste(
+      "Coverage probability at the 95\\% level by prior (right/wrong) and size",
+      "of the tree for the partially annotated model with",
+      "mislabeling."
+      ),
     label   = "tab:3coverage95-prior-size") %>%
   print %>%
   cat(file = "tables/03_coverage95_by_prior_and_size.tex")
 
 
 # Coverage probability by size -------------------------------------------------
-summ <- bias %>% 
+summ <- bias %>%
   group_by(Prior, miss_tag) %>%
   summarize_at(vars(ends_with("covered95")), ~ mean(.)) %>%
   set_colnames(gsub("[_]covered95$", "", colnames(.))) %>%
@@ -46,15 +57,26 @@ summ <- bias %>%
   # See https://www.sharelatex.com/learn/Errors/Illegal_unit_of_measure_(pt_inserted)
   ungroup %>%
   mutate(Missing = paste0("{", miss_tag, "}")) %>%
-  select(-miss_tag)
+  select(-miss_tag) %>%
+  rename(
+    `$\\mu_{01}$` = mu0,
+    `$\\mu_{10}$` = mu1,
+    `$\\psi_{01}$` = psi0,
+    `$\\psi_{10}$` = psi1,
+    `$\\pi$` = Pi,
+  )
 
 fact <- summ$Prior
-summ %>% 
-  select(-Prior, -Missing) %>%
+summ %>%
+  select(-Prior) %>%
   split(., fact) %>%
   `attr<-`("subheadings", paste(names(.), "Prior")) %>%
   xtableList(
-    caption = "Coverage probability at the 95\\% level by prior (right/wrong) and size of the tree.  Estimations with the \\emph{right} prior use the same priors as the data generating process, whereas estimations with the \\emph{wrong} prior used a prior that had a mean twice as large as the data generating process.",
+    caption = paste(
+      "Coverage probability at the 95\\% level by prior (right/wrong) and",
+      "proportion of missing labels for the partially annotated model with",
+      "mislabeling."
+    ),
     label   = "tab:3coverage95-prior-missingness") %>%
   print %>%
   cat(file = "tables/03_coverage95_by_prior_and_missingness.tex")

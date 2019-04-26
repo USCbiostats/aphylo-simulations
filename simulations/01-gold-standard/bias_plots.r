@@ -99,5 +99,5 @@ ggplot(bias, aes(y=Score, x=Type)) +
   theme(axis.text.x = element_text(angle=45, hjust = 1)) +
   xlab("") 
 
-ggsave("simulations/01-gold-standard/prediction_scores.pdf", width=6, height=4)
+ggsave("simulations/01-gold-standard/prediction_scores-01.pdf", width=6, height=4)
   
