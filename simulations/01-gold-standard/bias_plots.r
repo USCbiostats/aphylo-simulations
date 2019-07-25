@@ -89,7 +89,7 @@ bias <- bias %>%
     value = "Score",
     starts_with("pscore")
   ) %>%
-  mutate(Type = if_else(Type == "pscore", "Observed", "Random")) 
+  mutate(Type = if_else(Type == "pscore", "Model", "Random")) 
 
 ggplot(bias, aes(y=Score, x=Type)) +
   geom_violin() +

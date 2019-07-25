@@ -100,9 +100,11 @@ ggplot(same_vs_diff, aes(x = closests_same, y = closests_diff)) +
     ) +
   theme_bw() +
   scale_fill_viridis_c("Level of\nAccuracy") +
+  # theme(panel.background = element_rect("lightgray")) +
   xlab("Distance to the closests\nleaf with the same annotation") +
   ylab("Distance to the closests\nleaf with the the opposite annotation")
 
+ggsave(filename = "cv/neighbors.pdf", width = 7, height = 4)
 
 image(
   x = ans2$closests_zero,

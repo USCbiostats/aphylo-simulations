@@ -97,7 +97,7 @@ bias <- bias %>%
     value = "Score",
     starts_with("pscore")
   ) %>%
-  mutate(Type = if_else(Type == "pscore", "Observed", "Random")) 
+  mutate(Type = if_else(Type == "pscore", "Model", "Random")) 
 
 ggplot(bias, aes(Score, y = miss_tag)) +
   geom_density_ridges() +

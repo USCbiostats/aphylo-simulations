@@ -90,3 +90,47 @@ for (i in seq_along(atrees)) {
 names(atrees) <- candidate_trees
 saveRDS(atrees, file = "data/candidate_trees.rds")
 
+# Proportion of annotations, zeros, and ones -----------------------------------
+# candidate_trees <- readRDS("data/candidate_trees.rds")
+
+candidate_trees <- lapply(names(candidate_trees), function(t.) {
+  
+  anns <- candidate_trees[[t.]]$tip.annotation
+  anns <- apply(anns, 2, aphylo:::fast_table_using_labels, ids = c(0,1,9))
+  tibble(
+    tree = t.,
+    name = colnames(anns),
+    zero = anns[1, ],
+    one  = anns[2, ],
+    miss = anns[3, ]
+  )
+  
+}) %>% bind_rows %>%
+  filter(one > 0, zero > 0)
+
+# Total annotaions
+library(ggplot2)
+candidate_trees %>%
+  mutate(
+    zero_prop = zero/(zero + one + miss),
+    one_prop  = one/(zero + one + miss),
+    miss_prop  = 1 - (zero_prop + one_prop)
+  ) %>%
+  ggplot(aes(x = one_prop, y = zero_prop)) +
+  # theme_minimal() +
+  # theme(panel.background = element_rect("gray")) +
+  geom_hex(bins=20) +
+  # scale_fill_distiller() +
+  theme_bw() +
+  scale_fill_viridis_c() +
+  scale_x_log10() +
+  scale_y_log10() + 
+  xlab("% annotated with 1 (log-scale)") +
+  ylab("% annotated with 0 (log-scale)") +
+  labs(fill = "Freq") +
+  geom_abline(slope = 1, intercept = 0, color="white", lwd=1) 
+
+ggsave(filename = "data/candidate_trees.pdf", width = 7,
+       height = 6)
+
+
