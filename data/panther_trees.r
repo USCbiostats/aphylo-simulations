@@ -1,6 +1,6 @@
-library(dplyr)
-library(tidyr)
-library(magrittr)
+# library(dplyr)
+# library(tidyr)
+# library(magrittr)
 library(aphylo)
 library(sluRm)
 
@@ -16,7 +16,7 @@ trees <- Slurm_lapply(
   read_panther,
   njobs      = 40,
   job_name   = "candidate-trees",
-  job_path   = STAGING_PATH,
+  tmp_path   = STAGING_PATH,
   sbatch_opt = list(account = "lc_pdt", partition = "thomas"),
   plan       = "wait"
 )
