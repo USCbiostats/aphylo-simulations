@@ -6,8 +6,6 @@ library(sluRm)
 
 source("global-paths.r")
 
-ntrees <- 10
-
 # Reading the list of candidate functions and keeping the trees only
 candidate_functions <- readr::read_csv("data/candidate_functions.csv")
 candidate_trees     <- unique(candidate_functions$substring)
@@ -19,7 +17,8 @@ trees <- Slurm_lapply(
   njobs      = 10,
   job_name   = "candidate-trees",
   job_path   = STAGING_PATH,
-  sbatch_opt = list(account = "lc_pdt", partition = "thomas")
+  sbatch_opt = list(account = "lc_pdt", partition = "thomas"),
+  plan       = "wait"
   )
 
 trees <- Slurm_collect(trees)
