@@ -1,27 +1,14 @@
-library(dplyr)
-library(tidyr)
+# library(dplyr)
+# library(tidyr)
 library(magrittr)
+library(data.table)
 library(aphylo)
 library(sluRm)
-
+# 
 source("global-paths.r")
 
-# Reading the list of candidate functions and keeping the trees only
-candidate_functions <- readr::read_csv("data/candidate_functions.csv")
-candidate_trees     <- unique(candidate_functions$substring)
-
-# Reading panther trees
-trees <- Slurm_lapply(
-  sprintf("%s/%s/tree.tree", PANTHER_PATH, candidate_trees), 
-  read_panther,
-  njobs      = 10,
-  job_name   = "candidate-trees",
-  job_path   = STAGING_PATH,
-  sbatch_opt = list(account = "lc_pdt", partition = "thomas"),
-  plan       = "wait"
-  )
-
-trees <- Slurm_collect(trees)
+# Reading trees
+trees <- readRDS("data/panther_trees.rds")
 
 # Preserving the UniProtKB id only
 for (i in seq_along(trees))
@@ -30,73 +17,87 @@ for (i in seq_along(trees))
 
 # Reading the true annotations. We wil merge these with the 
 # trees that we will be using.
-annotations <- readr::read_delim(
-  "data-raw/true_annotations", delim = ";",
-  col_names = TRUE)
+annotations         <- data.table::fread("data-raw/true_annotations")
+candidate_functions <- data.table::fread("data/candidate_functions.csv")
+candidate_trees     <- unique(candidate_functions$substring)
 
-annotations <- annotations %>% 
-  right_join(candidate_functions) %>%
-  select(substring, primary_ext_acc, term, qualifier) %>%
-  mutate(primary_ext_acc = gsub(".+UniProtKB", "UniProtKB", primary_ext_acc)) 
+# LEFT JOINT candidate_functions to annotations
+annotations <- candidate_functions[annotations, on=c("substring", "term")]
+annotations <- annotations[, list(substring, primary_ext_acc, term, qualifier)]
+annotations[, primary_ext_acc := gsub(".+UniProtKB", "UniProtKB", primary_ext_acc)]
 
 # Creating aphylo objets
 atrees <- vector("list", length(trees))
 for (i in seq_along(atrees)) {
   
   # Gathering the corresponding annotations
-  a <- filter(annotations, substring == candidate_trees[i]) %>%
-    mutate(
-      state = case_when(
-        is.na(qualifier) ~ 1L,
-        qualifier == "NOT" ~ 0L,
-        TRUE ~ 1L
-      )
-    )
+  a <- annotations[substring == candidate_trees[i]]
+  a[is.na(qualifier)  , state := 1L]
+  a[qualifier == "NOT", state := 0L] 
+  a[is.na(state)      , state := 1L]
   
+  a <- a[, list(state = min(state)), by = c("primary_ext_acc", "term")]
+  
+  a <- dcast(a, primary_ext_acc ~ term, value.var = "state")
   # Reshaping wide
-  a <- a %>% 
-    select(-substring, -qualifier) %>%
-    # Fixing this WEIRD
-    # A tibble: 2 x 5
-    #   substring primary_ext_acc  term       qualifier      state
-    #   <chr>     <chr>            <chr>      <chr>          <int>
-    # 1 PTHR10788 UniProtKB=Q0WUI9 GO:0003825 CONTRIBUTES_TO     1
-    # 2 PTHR10788 UniProtKB=Q0WUI9 GO:0003825 NOT                0
-    group_by(primary_ext_acc, term) %>%
-    summarize(state = min(state)) %>%
-    spread(term, state)
+  # a <-
+    # a %>% 
+    # select(-substring, -qualifier) %>%
+    # # Fixing this WEIRD
+    # # A tibble: 2 x 5
+    # #   substring primary_ext_acc  term       qualifier      state
+    # #   <chr>     <chr>            <chr>      <chr>          <int>
+    # # 1 PTHR10788 UniProtKB=Q0WUI9 GO:0003825 CONTRIBUTES_TO     1
+    # # 2 PTHR10788 UniProtKB=Q0WUI9 GO:0003825 NOT                0
+    # group_by(primary_ext_acc, term) %>%
+    # summarize(state = min(state)) %>%
+    # spread(term, state)
   
   # Sorting according to the ith tree
   ord <- trees[[i]]$tree$tip.label
-  ord <- tibble(id = ord)
-  ord <- ord %>%
-    left_join(a, by = c("id" = "primary_ext_acc")) %>%
-    select(-id)
+  ord <- data.table(id = ord)
+  ord <- a[ord, on = c("primary_ext_acc" = "id")]
+  ord[, primary_ext_acc := NULL]
   
+  # NAs into 9s
   ord <- as.matrix(ord)
   ord[is.na(ord)] <- 9L
+
+  # Now, we match the annotations!
+  labs  <- with(trees[[i]]$tree, c(node.label))
+  labs  <- data.table(id = labs)
   
+  types    <- trees[[i]]$internal_nodes_annotations
+  types$id <- rownames(types)
+  types    <- data.table(types)
+  
+  types <- types[labs, on = "id"]
+  types <- types[, as.integer(!duplication)]
+  types[is.na(types)] <- 0L
+  
+    
   atrees[[i]] <- new_aphylo(
     tip.annotation = ord,
-    tree = trees[[i]]$tree
+    tree           = trees[[i]]$tree,
+    node.type      = types
     )
   
-  # if (!(i %% 10))
-  #   message(sprintf("atree[%i] done", i))
-  
+  if (!(i %% 20))
+    message("Tree ", i, " done...")
 }
 
 names(atrees) <- candidate_trees
 saveRDS(atrees, file = "data/candidate_trees.rds")
 
 # Proportion of annotations, zeros, and ones -----------------------------------
-# candidate_trees <- readRDS("data/candidate_trees.rds")
+# atrees <- readRDS("data/candidate_trees.rds")
 
-candidate_trees <- lapply(names(candidate_trees), function(t.) {
+candidate_trees <- lapply(names(atrees), function(t.) {
   
-  anns <- candidate_trees[[t.]]$tip.annotation
+  anns <- atrees[[t.]]$tip.annotation
   anns <- apply(anns, 2, aphylo:::fast_table_using_labels, ids = c(0,1,9))
-  tibble(
+  
+  data.table(
     tree = t.,
     name = colnames(anns),
     zero = anns[1, ],
@@ -104,17 +105,20 @@ candidate_trees <- lapply(names(candidate_trees), function(t.) {
     miss = anns[3, ]
   )
   
-}) %>% bind_rows %>%
-  filter(one > 0, zero > 0)
+})
+
+candidate_trees <- rbindlist(candidate_trees)
+candidate_trees <- candidate_trees[one > 0 & zero > 0]
 
 # Total annotaions
 library(ggplot2)
+
+candidate_trees[, zero_prop := zero/(zero + one + miss)]
+candidate_trees[, one_prop  := one/(zero + one + miss)]
+candidate_trees[, miss_prop := 1 - (zero_prop + one_prop)]
+
+
 candidate_trees %>%
-  mutate(
-    zero_prop = zero/(zero + one + miss),
-    one_prop  = one/(zero + one + miss),
-    miss_prop  = 1 - (zero_prop + one_prop)
-  ) %>%
   ggplot(aes(x = one_prop, y = zero_prop)) +
   # theme_minimal() +
   # theme(panel.background = element_rect("gray")) +
