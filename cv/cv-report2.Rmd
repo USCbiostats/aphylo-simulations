@@ -1,0 +1,202 @@
+---
+title: "Cross validation (with node type)"
+author: "George G Vega Yon"
+date: "7/30/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+library(ggplot2)
+library(aphylo)
+dat <- readRDS("cross_validation.rds")
+```
+
+# Question 1: Does prediction improves with information on node types?
+
+## Comparing Prediction Score
+
+```{r predscore}
+dat0 <- lapply(dat, "[[", "ans0")
+dat0 <- sapply(dat0, function(i) 1 - with(i$pscore, obs/worse))
+dat1 <- lapply(dat, "[[", "ans1")
+dat1 <- sapply(dat1, function(i) 1 - with(i$pscore, obs/worse))
+
+dat01_wide <- data.table(Baseline = dat0, Nodetype = dat1)
+```
+
+
+```{r}
+ggplot(dat01_wide, aes(y = Baseline, x = Nodetype)) +
+  geom_jitter(width = .01, height = .01) + 
+  geom_abline(slope = 1, intercept = 0)
+
+dat01_wide[, mean(Baseline <= Nodetype, na.rm = TRUE)]
+
+```
+
+## Comparing AUCs
+
+```{r aucs}
+dat0 <- lapply(dat, "[[", "ans0")
+dat0 <- sapply(dat0, function(i) i$auc$auc)
+dat1 <- lapply(dat, "[[", "ans1")
+dat1 <- sapply(dat1, function(i) i$auc$auc)
+
+dat01 <- data.table(
+  Model = c(rep("Baseline", length(dat0)), rep("Nodetype", length(dat1))),
+  AUC   = c(dat0, dat1)
+  )
+
+dat01_wide <- data.table(Baseline = dat0, Nodetype = dat1)
+
+```
+
+
+```{r}
+ggplot(dat01_wide, aes(y = Baseline, x = Nodetype)) +
+  geom_jitter(width = .01, height = .01) + 
+  geom_abline(slope = 1, intercept = 0)
+
+dat01_wide[, mean(Baseline <= Nodetype)]
+```
+
+## Cases worse than random
+
+### By Prediction score
+
+```{r dat-worse-than-rand-pscore}
+dat1 <- lapply(dat, "[[", "ans1")
+idx  <- sapply(dat1, function(i) with(i$pscore, obs > random))
+table(idx, useNA = "always")
+
+summary(dat1[which(idx)][[1]]$estimates$dat)
+summary(dat1[which(idx)][[2]]$estimates$dat)
+```
+
+### By AUC
+
+```{r dat-worse-than-rand-auc}
+dat1 <- lapply(dat, "[[", "ans1")
+idx  <- sapply(dat1, function(i) i$auc$auc < .5)
+table(idx, useNA = "always")
+
+summary(dat1[which(idx)][[1]]$estimates$dat)
+summary(dat1[which(idx)][[2]]$estimates$dat)
+```
+
+## Prediction quality as a function of the size of the tree
+
+```{r sizes}
+dat1 <- data.table(
+  Size   = sapply(dat, function(i) Ntip(i$ans1$estimates)),
+  AUC    = sapply(dat, function(i) i$ans1$auc$auc),
+  PScore = sapply(dat, function(i) with(i$ans1$pscore, 1 - obs/worse))
+)
+
+dat1[, PScore := ifelse(is.nan(PScore), 0, PScore)]
+dat1[, AUC := ifelse(is.nan(AUC), 0, AUC)]
+```
+
+```{r size-vs-auc}
+set.seed(1231)
+ggplot(dat1, aes(x = Size, y = AUC)) +
+  geom_jitter(width = 20, height = .025) +
+  ylim(c(0, 1))
+```
+
+```{r size-vs-pscore}
+set.seed(1231)
+ggplot(dat1, aes(x = Size, y = PScore)) +
+  geom_jitter(width = 20, height = .025) + 
+  ylim(c(0,1))
+```
+
+```{r}
+
+distances <- lapply(dat, function(i) {
+  ptr <- new_aphylo_pruner(i$ans0$estimates$dat)
+  aphylo:::Tree_get_dist_tip2root(ptr)
+})
+
+dat1[, dist2root := unname(sapply(distances, quantile, .5))]
+set.seed(12)
+ggplot(dat1, aes(x = dist2root, y = AUC)) +
+  geom_jitter()
+```
+
+
+# Question 2: Does the prediction improves with a joint model?
+
+# Estimates
+
+```{r read-questio2, echo=FALSE}
+parameter_estimates <- readRDS("../novel-predictions/parameter_estimates.rds")
+parameter_estimates
+```
+
+MCMC control:
+
+- Priors for $\psi, \mu_{s},\Pi \sim \mbox{Beta}(2, 10)$, mean of ~ 0.16
+
+- Priors for $\mu_d \sim \mbox{Beta}(10, 2)$ mean of ~ 0.83
+
+- Kernel: One-variable-at-a-time using a Normal random walk with reflective boundaries (0,1), final scale of 0.01.
+
+- Iterations: 10,000 (after 6,000 warmup steps). With thining (sampling) of 1 every 10 steps.
+
+## Convergence
+
+```{r plot-parameter_estimates, fig.height=12}
+library(coda)
+op <- par(mfrow=c(4, 2))
+densplot(parameter_estimates$hist, xlim = c(0,1))
+plot.new()
+traceplot(parameter_estimates$hist, ylim=c(0,1))
+par(op)
+```
+
+```{r}
+geweke.plot(parameter_estimates$hist)
+```
+
+## Prediction: Some examples
+
+```{r}
+
+prediction_scores <- matrix(ncol=2, nrow=length(dat))
+for (i in seq_along(dat)) {
+  dat1 <- dat[[i]]$ans1
+
+  # Making predictions
+  prediction_individual <- predict(dat1$estimates)
+  prediction_joint      <- predict(parameter_estimates, newdata = dat1$estimates$dat)
+  
+  # Comparing results
+  observed <- with(dat1$estimates$dat, rbind(tip.annotation, node.annotation))
+  ids <- which(observed != 9)
+  
+  old <- prediction_score(prediction_individual[ids,,drop=FALSE], observed[ids,,drop=FALSE])
+  new <- prediction_score(prediction_joint[ids,,drop=FALSE], observed[ids,,drop=FALSE])
+  
+  prediction_scores[i, ] <- c(
+    1 - with(old, obs/worse),
+    1 - with(new, obs/worse)
+  )
+}
+
+# Proportion of improvement
+mean(prediction_scores[,1] < prediction_scores[,2])
+```
+
+```{r viz-comparing-predictions}
+library(magrittr)
+prediction_scores %>%
+  data.table %>%
+  set_colnames(c("Individual", "Joint")) %>%
+  ggplot(aes(x = Individual, y = Joint)) +
+  geom_hex() +
+  geom_abline(slope = 1, intercept = 0)
+```
+

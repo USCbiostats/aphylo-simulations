@@ -90,7 +90,7 @@ names(atrees) <- candidate_trees
 saveRDS(atrees, file = "data/candidate_trees.rds")
 
 # Proportion of annotations, zeros, and ones -----------------------------------
-# atrees <- readRDS("data/candidate_trees.rds")
+atrees <- readRDS("data/candidate_trees.rds")
 
 candidate_trees <- lapply(names(atrees), function(t.) {
   
@@ -108,7 +108,21 @@ candidate_trees <- lapply(names(atrees), function(t.) {
 })
 
 candidate_trees <- rbindlist(candidate_trees)
-candidate_trees <- candidate_trees[one > 0 & zero > 0]
+candidate_trees <- candidate_trees[one > 1 & zero > 1]
+
+atrees <- atrees[unique(candidate_trees$tree)]
+filtered_trees <- vector("list", nrow(candidate_trees))
+for (i in seq_len(nrow(candidate_trees))) {
+  
+  t. <- candidate_trees$tree[i]
+  f. <- candidate_trees$name[i]
+  
+  filtered_trees[[i]] <- atrees[[t.]][f.]
+  
+}
+
+saveRDS(filtered_trees, file = "data/candidate_trees.rds")
+
 
 # Total annotaions
 library(ggplot2)
