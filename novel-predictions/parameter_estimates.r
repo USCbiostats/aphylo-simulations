@@ -1,102 +1,107 @@
 library(aphylo)
 library(coda)
 
-traceplot2 <- function(x) {
+traceplot2 <- function(x, ylim = c(0,1), what = NULL) {
   x <- x$hist
+  
+  if (!is.null(what))
+    x <- what(x)
+  
   k <- ifelse(is.mcmc.list(x), ncol(x[[1]]), ncol(x))
   op <- par(mfrow = c(4,2), mai = c(0.3366, 0.2706, 0.2706, 0))
-  traceplot(x, ylim = c(0,1))
+  traceplot(x, ylim = ylim)
   par(op)
 }
 
 # Reading the data
-candidate_trees <- readRDS("data/candidate_trees.rds")
+candidate_trees <- readRDS("data/candidate_trees_inferred.rds")
 
 # Fitting the model
 dat <- do.call(c, candidate_trees)
+dat <- unlist(lapply(dat, function(d) lapply(1:Nann(d), function(i) d[i])), recursive = FALSE)
+dat <- do.call(c, dat)
 
-# dat <- dat[Ntip(dat) < 1000L]
+# Selecting using balance
+b <- balance_ann(dat)
+dat <- dat[(b >= quantile(b, .25))]
+
+ans_mle <- aphylo_mle(dat ~ psi + mu_d + mu_s + Pi)
+
+kernel_ram <- kernel_new(
+  proposal = function(env) {
+    
+    # Making proposal
+    U      <- mvtnorm::rmvnorm(1, mean = Mu, sigma = diag(7))[1,]
+    theta1 <- env$theta0 + (Sigma %*% U)[,1]
+    
+    # Updating acceptance rate
+    if (env$i > 2) {
+      if (arate > env$i)
+        arate <<- 0
+      arate <<- arate + with(env, ans[i-1,] != ans[i-2,])
+    }
+    
+    # Updating the variance covariance matrix
+    if (!(env$i %% 50)) {
+
+      Sigma <- Sigma %*% (
+        diag(7) + min(1, (env$i)^(-2/3)*7)*(arate/env$i - .24) * U %*% t(U) /
+          norm(rbind(U), "2")^2
+        ) %*% t(Sigma)
+      Sigma <<- chol(Sigma)
+      
+      # Sigma <<- cov(env$ans[1L:(env$i-1),])*2.38^2/7 + diag(7)*1e-6
+      
+      message("Updating the variance co-variance matrix, iteration #",  env$i)
+      print(Sigma)
+    }
+    
+    # Reflection
+    reflect_on_boundaries(theta1, lb = lb, ub = ub, which = 1:7)
+    
+  },
+  Sigma = diag(7)*1e-4,
+  Mu    = rep(0, 7),
+  lb    = rep(0, 7),
+  ub    = rep(1, 7),
+  arate = 0L
+)
 
 priors. <- function(p) 1L
 
 mcmc. <- list(
   nchains      = 1,
   multicore    = FALSE, 
-  burnin       = 1000,
-  nsteps       = 2000,
+  burnin       = 0L,
+  nsteps       = 10000L,
   conv_checker = NULL,
-  kernel       = fmcmc::kernel_normal_reflective(
-    scale     = .05,
-    ub        = 1,
-    lb        = 0,
-    fixed     = FALSE,
-    scheme    = "random"
-  )
-)
-# 
-# res0 <- aphylo_mcmc(
-#   dat ~ mu_d + mu_s + psi + Pi,
-#   priors = priors., control = mcmc.
-#   )
-# 
-# res0b <- aphylo_mcmc(
-#   dat ~ mu_d + mu_s + Pi,
-#   priors = priors., control = mcmc.
-# )
-# 
-# 
-# mcmc.$burnin <- 0L
-# mcmc.$nsteps <- 1e4
-# 
-# res1 <- aphylo_mcmc(
-#   dat ~ mu_d + mu_s + psi + Pi,
-#   priors = priors., control = mcmc.,
-#   params = summary(res0$hist)$quantiles[,"50%"]
-# )
-# 
-# # Adjust the scale using the acceptance rate
-# arate <- 1 - rejectionRate(res1$hist)
-# mcmc.$kernel$scale <- mcmc.$kernel$scale/(1 + (.44 - arate))^2
-# 
-# saveRDS(res1, "novel-predictions/parameter_estimates_baseline.rds")
-
-res1 <- readRDS("novel-predictions/parameter_estimates_baseline.rds")
-
-
-# Using adaptation as described by Handbook of MCMC p. 104
-library(fmcmc)
-kernel_mvn <- kernel_new(
-  proposal = function(env) {
-    
-    # Updating the variance covariance matrix
-    if (env$i > 1000L && !(env$i %% 500)) {
-      Sigma <<- cov(env$ans[(env$i-999):(env$i-1),])*2.38^2/7
-      message("Updating the variance co-variance matrix")
-      print(Sigma)
-    }
-    
-    theta1 <- env$theta0 +
-      as.vector(mvtnorm::rmvnorm(1, mean = Mu, sigma = Sigma))
-    reflect_on_boundaries(theta1, lb = lb, ub = ub, which = 1:7)
-    
-  },
-  Sigma = cov(do.call(rbind, res1$hist))*2.38^2/7,
-  Mu    = rep(0, 7),
-  lb    = rep(0, 7),
-  ub    = rep(1, 7)
+  kernel       = fmcmc::kernel_adapt(
+    Sigma = chol(crossprod(vcov(ans_mle))),
+    lb = 0, ub = 1, warmup = 1000, freq = 10
+    ),
+  thin         = 1L
 )
 
-mcmc.$kernel <- kernel_mvn
-mcmc.$nsteps <- 10000
-mcmc.$thin   <- 1
+# debug(mcmc.$kernel$proposal)
+res1 <- aphylo_mcmc(
+  dat ~ mu_d + mu_s + psi + Pi,
+  priors = priors., control = mcmc.,
+  params = coef(ans_mle)
+)
 
 res2 <- aphylo_mcmc(
   dat ~ mu_d + mu_s + psi + Pi,
   priors = priors., control = mcmc.,
-  params = summary(res1$hist)$quantiles[,"50%"]
+  params = rep(.9, 7)
 )
 
-saveRDS(res3, "novel-predictions/parameter_estimates_final.rds")
+res3 <- aphylo_mcmc(
+  dat ~ mu_d + mu_s + psi + Pi,
+  priors = priors., control = mcmc.,
+  params = rep(.5, 7)
+)
+
+saveRDS(res, "novel-predictions/parameter_estimates_final.rds")
 
 # 
 # set.seed(11)

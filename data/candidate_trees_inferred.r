@@ -8,7 +8,7 @@ library(sluRm)
 source("global-paths.r")
 
 # Reading trees
-trees <- readRDS("data/panther_trees.rds")
+trees <- readRDS("data/panther_trees_inferred.rds")
 
 # Preserving the UniProtKB id only
 for (i in seq_along(trees))
@@ -23,7 +23,10 @@ candidate_functions <- data.table::fread("data/candidate_functions_inferred.csv"
 candidate_trees     <- unique(candidate_functions$substring)
 
 # LEFT JOINT candidate_functions to annotations
-annotations <- candidate_functions[annotations, on=c("substring", "term")]
+annotations <- merge(
+  annotations, candidate_functions, by=c("substring", "term"),
+  all.x = FALSE, all.y = FALSE
+  )
 annotations <- annotations[, list(substring, primary_ext_acc, term, qualifier)]
 annotations[, primary_ext_acc := gsub(".+UniProtKB", "UniProtKB", primary_ext_acc)]
 
@@ -88,8 +91,8 @@ for (i in seq_along(atrees)) {
 }
 
 names(atrees) <- candidate_trees
-saveRDS(atrees, file = "data/candidate_trees.rds")
-
+saveRDS(atrees, file = "data/candidate_trees_inferred.rds")
+stop()
 # Proportion of annotations, zeros, and ones -----------------------------------
 atrees <- readRDS("data/candidate_trees.rds")
 
