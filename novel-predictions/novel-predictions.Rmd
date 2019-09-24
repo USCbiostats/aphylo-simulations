@@ -1,0 +1,110 @@
+---
+title: "novel-predictions"
+author: "George G Vega Yon"
+date: "9/24/2019"
+output:
+  beamer_presentation:
+    keep_tex: true
+header-includes:
+  - \usepackage{booktabs}
+  - \usepackage{tabularx}
+  - \usepackage{geometry}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(aphylo)
+library(xtable)
+```
+
+## Estimates
+
+```{r read-data}
+files <- list.files(pattern = "parameter_estimates.+rds", full.names = FALSE)
+estimates <- lapply(files, readRDS)
+```
+
+```{r coef, results='asis'}
+theta <- do.call(cbind, lapply(estimates, coef))
+vars  <- do.call(cbind, lapply(lapply(estimates, vcov), diag))
+
+tab  <- matrix(sprintf("%.2f", theta), ncol = ncol(theta))
+dimnames(tab) <- list(rownames(theta), paste0("(", 1:ncol(tab), ")"))
+
+varnames <- c(
+  psi0  = "$\\psi_0$",
+  psi1  = "$\\psi_1$",
+  mu_d0 = "$\\mu_{d0}$",
+  mu_d1 = "$\\mu_{d1}$",
+  mu_s0 = "$\\mu_{s0}$",
+  mu_s1 = "$\\mu_{s1}$",
+  Pi    = "$\\pi$"
+  )
+
+rownames(tab) <- varnames[rownames(tab)]
+
+# Adding information
+tab <- rbind(
+  tab,
+  `Tree count` = sapply(estimates, Ntrees),
+  Method = ifelse(grepl("mcmc", files), "MCMC", "MLE"),
+  Prior  = ifelse(grepl("no_prior", files), "Uniform", "Beta"),
+  Inferred = ifelse(grepl("fully", files), "Yes", "No")
+  )
+
+tmptab <- tempfile()
+tab <- xtable(tab, caption = paste0(
+  "Parameter estimates using different estimation methods, priors, and ",
+  "types of annotations."
+  ))
+print(tab, file = tmptab, booktabs = TRUE, scalebox = .6, 
+      comment = FALSE, sanitize.text.function= function(i) i)
+tab <- readLines(tmptab)
+tab[grepl("begin\\{tabular", tab)] <- sprintf(
+  "\\begin{tabular}{l*{%d}{m{%.2f\\linewidth}}}",
+  ncol(theta),
+  1.1/ncol(theta)
+)
+tab[grepl("Method", tab)] <- paste("\\midrule", tab[grepl("Method", tab)])
+
+cat(tab, sep="\n")
+```
+
+## How priors affect predictions: Fully annotated (Unif prior)
+
+```{r preparing-for-mcmc-diagnostics}
+files <- gsub("(parameter_estimates_)", "", files)
+files <- gsub("(mcmc|mle)", "\\U\\1", files, perl = TRUE)
+files <- gsub("_", " ", files)
+files <- gsub("[.]rds", "", files)
+names(estimates) <- files
+
+# Getting the 4 smallest trees
+inferred <- order(Ntip(estimates$`MCMC fully annotated no prior`))[1:4]
+observed <- order(Ntip(estimates$`MCMC partially annotated no prior`))[1:4]
+```
+
+```{r annotations1.1}
+plot(estimates$`MCMC fully annotated no prior`, which.tree = inferred[2])
+```
+
+## How priors affect predictions: Fully annotated (Beta prior)
+
+```{r annotations1.2}
+plot(estimates$`MCMC fully annotated prior`, which.tree = inferred[2])
+```
+
+
+## How priors affect predictions: Experimentally annotated (Unif prior)
+
+```{r annotations2.1}
+plot(estimates$`MCMC partially annotated no prior`, which.tree = observed[1])
+```
+
+
+## How priors affect predictions: Experimentally annotated (Beta prior)
+
+```{r annotations2.2}
+plot(estimates$`MCMC partially annotated no prior`, which.tree = observed[1])
+```
+
