@@ -44,12 +44,26 @@ varnames <- c(
 rownames(tab) <- varnames[rownames(tab)]
 
 # Adding information
+
+ps <- lapply(estimates, prediction_score)
+aucs <- sapply(ps, function(i) {
+  mean(sapply(i, function(j) aphylo::auc(j$predicted, j$expected)$auc))
+})
+pss  <- sapply(ps, function(i) {
+  tmp <- 1 - t(sapply(i, function(j) with(j, c(obs, random)/worse)))
+  colMeans(tmp, na.rm = TRUE)
+})
+
+
 tab <- rbind(
   tab,
   `Tree count` = sapply(estimates, Ntrees),
-  Method = ifelse(grepl("mcmc", files), "MCMC", "MLE"),
-  Prior  = ifelse(grepl("no_prior", files), "Uniform", "Beta"),
-  Inferred = ifelse(grepl("fully", files), "Yes", "No")
+  Method       = ifelse(grepl("mcmc", files), "MCMC", "MLE"),
+  Prior        = ifelse(grepl("no_prior", files), "Uniform", "Beta"),
+  Inferred     = ifelse(grepl("fully", files), "Yes", "No"),
+  AUC          = sprintf("%.2f", aucs),
+  `P. Score (obs)` = sprintf("%.2f", pss[1,]),
+  `P. Score (random)` = sprintf("%.2f", pss[2,])
   )
 
 tmptab <- tempfile()
@@ -70,7 +84,7 @@ tab[grepl("Method", tab)] <- paste("\\midrule", tab[grepl("Method", tab)])
 cat(tab, sep="\n")
 ```
 
-## How priors affect predictions: Fully annotated (Unif prior)
+## MCMC convergence: Fully annotated (Unif prior)
 
 ```{r preparing-for-mcmc-diagnostics}
 files <- gsub("(parameter_estimates_)", "", files)
@@ -83,6 +97,58 @@ names(estimates) <- files
 inferred <- order(Ntip(estimates$`MCMC fully annotated no prior`))[1:4]
 observed <- order(Ntip(estimates$`MCMC partially annotated no prior`))[1:4]
 ```
+
+
+```{r setting-coda}
+library(coda)
+traceplot2 <- function(x, ylim = c(0,1), what = NULL) {
+  x <- x$hist
+  
+  if (!is.null(what))
+    x <- what(x)
+  
+  k <- ifelse(is.mcmc.list(x), ncol(x[[1]]), ncol(x))
+  op <- par(mfrow = c(4,2), mai = c(0.3366, 0.2706, 0.2706, 0))
+  traceplot(x, ylim = ylim)
+  par(op)
+}
+
+```
+
+
+```{r trace-fully-unif}
+traceplot2(estimates$`MCMC fully annotated no prior`)
+```
+
+## MCMC convergence: Fully annotated (Beta prior)
+
+```{r trace-fully-beta}
+traceplot2(estimates$`MCMC fully annotated prior`)
+```
+
+## MCMC convergence: Partially annotated (Unif prior)
+
+```{r trace-partially-unif}
+traceplot2(estimates$`MCMC partially annotated no prior`)
+```
+
+## MCMC convergence: Partially annotated (Beta prior)
+
+```{r trace-partially-beta}
+traceplot2(estimates$`MCMC partially annotated prior`)
+```
+
+---
+
+Zooming in:
+
+```{r}
+traceplot2(estimates$`MCMC partially annotated prior`, ylim=NULL,
+           what = function(i) window(i, 2000))
+```
+
+
+## How priors affect predictions: Fully annotated (Unif prior)
 
 ```{r annotations1.1}
 plot(estimates$`MCMC fully annotated no prior`, which.tree = inferred[2])
@@ -105,6 +171,6 @@ plot(estimates$`MCMC partially annotated no prior`, which.tree = observed[1])
 ## How priors affect predictions: Experimentally annotated (Beta prior)
 
 ```{r annotations2.2}
-plot(estimates$`MCMC partially annotated no prior`, which.tree = observed[1])
+plot(estimates$`MCMC partially annotated prior`, which.tree = observed[1])
 ```
 

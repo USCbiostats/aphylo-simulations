@@ -1,18 +1,6 @@
 library(aphylo)
 library(coda)
 
-traceplot2 <- function(x, ylim = c(0,1), what = NULL) {
-  x <- x$hist
-  
-  if (!is.null(what))
-    x <- what(x)
-  
-  k <- ifelse(is.mcmc.list(x), ncol(x[[1]]), ncol(x))
-  op <- par(mfrow = c(4,2), mai = c(0.3366, 0.2706, 0.2706, 0))
-  traceplot(x, ylim = ylim)
-  par(op)
-}
-
 shrink_towards_half <- function(x, margin=.01) {
   
   x[x < (.5 - margin)] <- x[x < (.5 - margin)] + margin
@@ -24,9 +12,9 @@ shrink_towards_half <- function(x, margin=.01) {
 # Common parameters
 prior. <- bprior(c(2,2,9,9,2,2,2,2,2), c(9,9,2,2,9,9,9,9,9))
 mcmc. <- list(
-  nchains      = 2,
+  nchains      = 4L,
   multicore    = FALSE, 
-  burnin       = 1000L,
+  burnin       = 500L,
   nsteps       = 5000L,
   conv_checker = NULL,
   kernel       = fmcmc::kernel_adapt(lb = 0, ub = 1, warmup = 1000, freq = 10),
@@ -38,7 +26,7 @@ set.seed(1362)
 # Case 1: (Almost) Fully annotated trees ---------------------------------------
 
 # Data preprocessing
-fully_annotated <- readRDS("data/candidate_trees.rds")
+fully_annotated <- readRDS("data/candidate_trees_inferred.rds")
 fully_annotated <- do.call(c, fully_annotated)
 fully_annotated <- unlist(lapply(fully_annotated, function(d) {
   lapply(1:Nann(d), function(i) d[i])
@@ -62,7 +50,7 @@ saveRDS(
   )
 ans_mcmc_fully_annotated_no_prior <- aphylo_mcmc(
   fully_annotated ~ psi + mu_d + mu_s + Pi,
-  params  = coef(ans_mle_fully_annotated_no_prior),
+  params  = shrink_towards_half(coef(ans_mle_fully_annotated_no_prior)),
   control = mcmc.
 )
 
@@ -87,7 +75,7 @@ mcmc.$kernel <- fmcmc::kernel_adapt(lb = 0, ub = 1, warmup = 1000, freq = 10)
 ans_mcmc_fully_annotated_prior <- aphylo_mcmc(
   fully_annotated ~ psi + mu_d + mu_s + Pi,
   priors = prior.,
-  params  = coef(ans_mle_fully_annotated_prior),
+  params  = shrink_towards_half(coef(ans_mle_fully_annotated_prior)),
   control = mcmc.
 )
 
@@ -99,7 +87,7 @@ saveRDS(
   )
 # Case 2: (Almost) Fully annotated trees ---------------------------------------
 
-partially_annotated <- readRDS("data/candidate_trees_inferred.rds")
+partially_annotated <- readRDS("data/candidate_trees.rds")
 partially_annotated <- do.call(c, partially_annotated)
 partially_annotated <- unlist(lapply(partially_annotated, function(d) {
   lapply(1:Nann(d), function(i) d[i])
@@ -120,7 +108,7 @@ saveRDS(
 mcmc.$kernel <- fmcmc::kernel_adapt(lb = 0, ub = 1, warmup = 1000, freq = 10)
 ans_mcmc_partially_annotated_no_prior <- aphylo_mcmc(
   partially_annotated ~ psi + mu_d + mu_s + Pi,
-  params  = coef(ans_mle_partially_annotated_no_prior),
+  params  = shrink_towards_half(coef(ans_mle_partially_annotated_no_prior)),
   control = mcmc.
 )
 
@@ -145,7 +133,7 @@ mcmc.$kernel <- fmcmc::kernel_adapt(lb = 0, ub = 1, warmup = 1000, freq = 10)
 ans_mcmc_partially_annotated_prior <- aphylo_mcmc(
   partially_annotated ~ psi + mu_d + mu_s + Pi,
   priors = prior.,
-  params  = coef(ans_mle_partially_annotated_prior),
+  params  = shrink_towards_half(coef(ans_mle_partially_annotated_prior)),
   control = mcmc.
 )
 
