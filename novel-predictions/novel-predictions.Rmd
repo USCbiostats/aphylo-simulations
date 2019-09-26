@@ -1,7 +1,7 @@
 ---
-title: "novel-predictions"
+title: "Joint likelihood using fully and partially annotated trees"
 author: "George G Vega Yon"
-date: "9/24/2019"
+date: "Sep 26, 2019"
 output:
   beamer_presentation:
     keep_tex: true
@@ -12,7 +12,7 @@ header-includes:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, fig.height=7)
 library(aphylo)
 library(xtable)
 ```
@@ -140,7 +140,7 @@ traceplot2(estimates$`MCMC partially annotated prior`)
 
 ---
 
-Zooming in:
+Zooming in Partially annotated trees model with Beta prior:
 
 ```{r}
 traceplot2(estimates$`MCMC partially annotated prior`, ylim=NULL,
@@ -151,26 +151,36 @@ traceplot2(estimates$`MCMC partially annotated prior`, ylim=NULL,
 ## How priors affect predictions: Fully annotated (Unif prior)
 
 ```{r annotations1.1}
-plot(estimates$`MCMC fully annotated no prior`, which.tree = inferred[2])
+plot(estimates$`MCMC fully annotated no prior`, which.tree = inferred[2],
+     cex = .5)
 ```
 
 ## How priors affect predictions: Fully annotated (Beta prior)
 
 ```{r annotations1.2}
-plot(estimates$`MCMC fully annotated prior`, which.tree = inferred[2])
+plot(estimates$`MCMC fully annotated prior`, which.tree = inferred[2],
+     cex = .5)
 ```
 
 
 ## How priors affect predictions: Experimentally annotated (Unif prior)
 
 ```{r annotations2.1}
-plot(estimates$`MCMC partially annotated no prior`, which.tree = observed[1])
+plot(estimates$`MCMC partially annotated no prior`, which.tree = observed[2],
+     cex = .5)
 ```
 
 
 ## How priors affect predictions: Experimentally annotated (Beta prior)
 
 ```{r annotations2.2}
-plot(estimates$`MCMC partially annotated prior`, which.tree = observed[1])
+plot(estimates$`MCMC partially annotated prior`, which.tree = observed[2],
+     cex = .5)
 ```
 
+---
+
+```{r out-of-sample1, fig.height=9.5}
+tree <- readRDS("PTHR11409.rds")
+plot(tree, main="Adenosine Deaminase (PTHR11409)", cex = .4, prop = .3)
+```

@@ -10,15 +10,20 @@ shrink_towards_half <- function(x, margin=.01) {
 }
 
 # Common parameters
-prior. <- bprior(c(2,2,9,9,2,2,2,2,2), c(9,9,2,2,9,9,9,9,9))
+prior.  <- bprior(c(2,2,9,9,2,2,2,2,2), c(9,9,2,2,9,9,9,9,9))
+warmup. <- 1000
+freq.   <- 10
+lb.     <- 1e-5
+ub.     <- 1 - 1e-5
+
 mcmc. <- list(
   nchains      = 4L,
   multicore    = FALSE, 
   burnin       = 500L,
-  nsteps       = 5000L,
+  nsteps       = 10000L,
   conv_checker = NULL,
-  kernel       = fmcmc::kernel_adapt(lb = 0, ub = 1, warmup = 1000, freq = 10),
-  thin         = 1L
+  kernel       = fmcmc::kernel_adapt(lb = lb., ub = ub., warmup = warmup., freq = freq.),
+  thin         = 10L
 )
 
 set.seed(1362)
@@ -35,7 +40,7 @@ fully_annotated <- do.call(c, fully_annotated)
 
 # Selecting using balance
 b <- balance_ann(fully_annotated)
-fully_annotated <- fully_annotated[(b >= quantile(b, .1))]
+fully_annotated <- fully_annotated[(b >= quantile(b, .2))]
 
 # 1.A: No prior
 ans_mle_fully_annotated_no_prior <- aphylo_mle(
@@ -48,6 +53,7 @@ saveRDS(
   ans_mle_fully_annotated_no_prior,
   "novel-predictions/parameter_estimates_mle_fully_annotated_no_prior.rds"
   )
+
 ans_mcmc_fully_annotated_no_prior <- aphylo_mcmc(
   fully_annotated ~ psi + mu_d + mu_s + Pi,
   params  = shrink_towards_half(coef(ans_mle_fully_annotated_no_prior)),
@@ -71,7 +77,7 @@ saveRDS(
   ans_mle_fully_annotated_prior,
   "novel-predictions/parameter_estimates_mle_fully_annotated_prior.rds"
   )
-mcmc.$kernel <- fmcmc::kernel_adapt(lb = 0, ub = 1, warmup = 1000, freq = 10)
+mcmc.$kernel <- fmcmc::kernel_adapt(lb = lb., ub = ub., warmup = warmup., freq = freq.)
 ans_mcmc_fully_annotated_prior <- aphylo_mcmc(
   fully_annotated ~ psi + mu_d + mu_s + Pi,
   priors = prior.,
@@ -105,7 +111,7 @@ saveRDS(
   ans_mle_partially_annotated_no_prior,
   "novel-predictions/parameter_estimates_mle_partially_annotated_no_prior.rds"
   )
-mcmc.$kernel <- fmcmc::kernel_adapt(lb = 0, ub = 1, warmup = 1000, freq = 10)
+mcmc.$kernel <- fmcmc::kernel_adapt(lb = lb., ub = ub., warmup = warmup., freq = freq.)
 ans_mcmc_partially_annotated_no_prior <- aphylo_mcmc(
   partially_annotated ~ psi + mu_d + mu_s + Pi,
   params  = shrink_towards_half(coef(ans_mle_partially_annotated_no_prior)),
@@ -129,7 +135,7 @@ saveRDS(
   ans_mle_partially_annotated_prior,
   "novel-predictions/parameter_estimates_mle_partially_annotated_prior.rds"
   )
-mcmc.$kernel <- fmcmc::kernel_adapt(lb = 0, ub = 1, warmup = 1000, freq = 10)
+mcmc.$kernel <- fmcmc::kernel_adapt(lb = lb., ub = ub., warmup = warmup., freq = freq.)
 ans_mcmc_partially_annotated_prior <- aphylo_mcmc(
   partially_annotated ~ psi + mu_d + mu_s + Pi,
   priors = prior.,
