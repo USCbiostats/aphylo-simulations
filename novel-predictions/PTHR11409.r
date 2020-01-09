@@ -50,23 +50,22 @@ summary(tree)
 
 tree <- tree[c("GO:0004000", "GO:0006154", "GO:0005615")]
 
-samp <- do.call(rbind, model$hist)
-idx  <- sample.int(nrow(samp), 1000, TRUE)
+# samp <- do.call(rbind, model$hist)
+# idx  <- sample.int(nrow(samp), 1000, TRUE)
+# pr2 <- predict_pre_order(model, newdata = tree, params = samp[idx[1],])/1000
+# for (i in 2:length(idx)) {
+#   pr2 <- pr2 + predict_pre_order(model, newdata = tree, params = samp[idx[i],])/1000
+# }
 
-pr2 <- predict_pre_order(model, newdata = tree, params = samp[idx[1],])/1000
-for (i in 2:length(idx)) {
-  pr2 <- pr2 + predict_pre_order(model, newdata = tree, params = samp[idx[i],])/1000
-}
+pr <- predict(model, newdata = tree, loo = TRUE)
 
-pr <- predict(model, newdata = tree)
-
-colnames(pr2) <- paste("Pred. MCMC", colnames(pr))
+# colnames(pr2) <- paste("Pred. MCMC", colnames(pr))
 colnames(pr) <- paste("Pred.", colnames(pr))
 
 tree$tip.annotation <- cbind(tree$tip.annotation, pr[1:Ntip(tree),])
 tree$node.annotation <- cbind(tree$node.annotation, pr[-c(1:Ntip(tree)),])
-tree$tip.annotation <- cbind(tree$tip.annotation, pr2[1:Ntip(tree),])
-tree$node.annotation <- cbind(tree$node.annotation, pr2[-c(1:Ntip(tree)),])
+# tree$tip.annotation <- cbind(tree$tip.annotation, pr2[1:Ntip(tree),])
+# tree$node.annotation <- cbind(tree$node.annotation, pr2[-c(1:Ntip(tree)),])
 
 saveRDS(tree, "novel-predictions/PTHR11409.rds")
 
