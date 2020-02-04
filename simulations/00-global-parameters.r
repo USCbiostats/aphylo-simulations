@@ -1,12 +1,9 @@
 # Local paths
 source("global-paths.r")
-# STAGING_PATH <- "/staging/pdt/vegayon/aphylo-simulations"
-# PANTHER_PATH <- "/auto/pmd-02/pdt/pdthomas/panther/famlib/rel/PANTHER13.1_altVersion/hmmscoring/PANTHER13.1/books"
-# PROJECT_PATH <- "/home/rcf-proj2/pdt/vegayon/aphylo-simulations"
 
-opts_sluRm$set_tmp_path(STAGING_PATH)
-opts_sluRm$set_opts(
-  partition     = "thomas",
+opts_slurmR$set_tmp_path(STAGING_PATH)
+opts_slurmR$set_opts(
+  partition     = "scavenge",
   account       = "lc_pdt",
   time          = "05:00:00",
   `mem-per-cpu` = "2G"
@@ -25,8 +22,10 @@ mcmc.nchains <- 4
 mcmc.multicore <- FALSE
 
 # True DGP parameters
-ALPHA_PAR <- c( 2, 2, 2, 2, 7,38, 2)
-BETA_PAR  <- c(38,38,38,38, 3, 2,38)
+# These are given in the following way
+# psi0, psi1, mu_d0, mu_d1, mu_s0, mu_s1, eta0, eta1, Pi
+ALPHA_PAR <- c( 2,  2, 38, 10,  2,  2, 38, 38,  2)
+BETA_PAR  <- c(38, 38,  2, 10, 38, 38,  2,  2, 38)
 
 # Function to estimate model using MCMC
 mcmc_lite <- function(

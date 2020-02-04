@@ -10,3 +10,10 @@
 _rslurm*
 *_cache
 
+*.snm
+*.nav
+*.toc
+*.csv
+*.vrb
+*.log
+*.tex

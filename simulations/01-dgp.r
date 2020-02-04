@@ -1,3 +1,10 @@
+#!/bin/sh
+#SBATCH --partition=thomas
+#SBATCH --account=lc_ggv
+#SBATCH --time=01:00:00
+#SBATCH --mem-per-cpu=4G
+#SBATCH --job-name=01-dgp-aphylo-simulations
+
 #' This R script contains the set of functions used for the Data Generating
 #' Process for the simulation of annotated trees.
 #' The following functions are included:
@@ -16,7 +23,7 @@
 #' are doing what are supposed to do.
 
 library(aphylo)
-library(sluRm)
+library(slurmR)
 
 # Path to the current panther dataset
 source("simulations/00-global-parameters.r")
@@ -47,20 +54,21 @@ sim_annotations_panther <- function(tree, par) {
   
   # Step 0: Model parameters
   par <- rbeta(
-    7,
+    9,
     shape1 = ALPHA_PAR,
     shape2 = BETA_PAR 
     )
-  names(par)  <- c("psi0", "psi1", "mu0", "mu1", "eta0", "eta1", "Pi")
+  names(par)  <- c("psi0", "psi1", "mu_d0", "mu_d1", "mu_s0", "mu_s1", "eta0", "eta1", "Pi")
   par["drop"] <- runif(1, .1, .9)
   
   # 1. Simulate annotations
   atree <- sim_fun_on_tree(
     tree,
-    psi = c(0, 0),
-    mu  = par[c("mu0", "mu1")],
-    eta = c(1, 1),
-    Pi  = par["Pi"]
+    psi  = c(0, 0),
+    mu_d = par[c("mu_d0", "mu_d1")],
+    mu_s = par[c("mu_s0", "mu_s1")],
+    eta  = c(1, 1),
+    Pi   = par["Pi"]
     )
   
   nleaf <- ape::Ntip(tree)
@@ -99,13 +107,19 @@ sim_annotations_panther <- function(tree, par) {
 PANTHER_FILES <- list.files(PANTHER_PATH, recursive=FALSE, full.names=TRUE)
 PANTHER_FILES <- paste0(PANTHER_FILES, "/tree.tree")
 
-# Generating random data w/ trees of size 50
+# REading the trees ------------------------------------------------------------
 set.seed(1)
-# SAMPLED_TREE_FILES <- sample(PANTHER_FILES, NSAMPLES, TRUE)
-PANTHER_TREES      <- Slurm_lapply(PANTHER_FILES, read_panther,
-  job_name = "reading_trees", njobs = 20, mc.cores=4L)
-PANTHER_TREES      <- Slurm_collect(PANTHER_TREES)
-PANTHER_TREES      <- lapply(PANTHER_TREES, "[[", "tree")
+PANTHER_TREES <- Slurm_lapply(
+  PANTHER_FILES,
+  read_panther,
+  job_name = "reading_trees",
+  njobs    = 20,
+  mc.cores = 4L,
+  plan     = "collect"
+  )
+
+
+PANTHER_TREES <- lapply(PANTHER_TREES, "[[", "tree")
 
 dat <- vector("list", NSAMPLES)
 for (i in seq_along(PANTHER_TREES))
