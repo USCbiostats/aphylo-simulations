@@ -1,3 +1,7 @@
+slurmr := ~/./slurmr
+
+
+
 ALL:
 	sbatch -W 01-gold-standard.sh && \
 	sbatch -W 01-gold-standard-wrong-prior.sh && \

@@ -9,6 +9,8 @@ opts_slurmR$set_opts(
   `mem-per-cpu` = "2G"
 )
 
+NJOBS <- 150
+
 if (!dir.exists(STAGING_PATH))
   dir.create(STAGING_PATH)
 
@@ -26,6 +28,13 @@ mcmc.multicore <- FALSE
 # psi0, psi1, mu_d0, mu_d1, mu_s0, mu_s1, eta0, eta1, Pi
 ALPHA_PAR <- c( 2,  2, 38, 10,  2,  2, 38, 38,  2)
 BETA_PAR  <- c(38, 38,  2, 10, 38, 38,  2,  2, 38)
+
+names(ALPHA_PAR) <- c(
+  "psi0", "psi1", "mu_d0", "mu_d1", "mu_s0", "mu_s1", "eta0", "eta1", "Pi"
+  )
+names(BETA_PAR) <- names(ALPHA_PAR)
+
+ALPHA_PAR_WRONG <- ALPHA_PAR * 2
 
 # Function to estimate model using MCMC
 mcmc_lite <- function(
