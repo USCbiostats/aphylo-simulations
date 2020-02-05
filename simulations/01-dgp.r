@@ -50,7 +50,9 @@ apply_pub_bias <- function(x, eta) {
 
 
 # Core simulation
-sim_annotations_panther <- function(tree, par) {
+sim_annotations_panther <- function(dat, par) {
+  
+  tree <- dat$tree
   
   # Step 0: Model parameters
   par <- rbeta(
@@ -64,11 +66,13 @@ sim_annotations_panther <- function(tree, par) {
   # 1. Simulate annotations
   atree <- sim_fun_on_tree(
     tree,
-    psi  = c(0, 0),
-    mu_d = par[c("mu_d0", "mu_d1")],
-    mu_s = par[c("mu_s0", "mu_s1")],
-    eta  = c(1, 1),
-    Pi   = par["Pi"]
+    # 0: duplication event, 1: other
+    node.type = 1 - dat$internal_nodes_annotations$duplication,
+    psi       = c(0, 0),
+    mu_d      = par[c("mu_d0", "mu_d1")],
+    mu_s      = par[c("mu_s0", "mu_s1")],
+    eta       = c(1, 1),
+    Pi        = par["Pi"]
     )
   
   nleaf <- ape::Ntip(tree)
@@ -117,7 +121,6 @@ PANTHER_TREES <- Slurm_lapply(
   mc.cores = 4L,
   plan     = "collect"
   )
-
 
 PANTHER_TREES <- lapply(PANTHER_TREES, "[[", "tree")
 
