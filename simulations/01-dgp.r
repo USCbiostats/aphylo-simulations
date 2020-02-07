@@ -1,6 +1,6 @@
 #!/bin/sh
 #SBATCH --partition=thomas
-#SBATCH --account=lc_ggv
+#SBATCH --account=lc_pdt
 #SBATCH --time=01:00:00
 #SBATCH --mem-per-cpu=4G
 #SBATCH --job-name=01-dgp-aphylo-simulations
@@ -26,7 +26,7 @@ library(aphylo)
 library(slurmR)
 
 # Path to the current panther dataset
-source("simulations/00-global-parameters.r")
+source("00-global-parameters.r")
 
 # Data Generating Process Functions --------------------------------------------
 
@@ -79,7 +79,8 @@ sim_annotations_panther <- function(dat, par) {
   atree <- new_aphylo(
     tip.annotation  = atree[1:nleaf,,drop=FALSE],
     node.annotation = atree[(nleaf+1):nrow(atree),,drop=FALSE],
-    tree            = tree
+    tree            = tree,
+    node.type       = 1 - dat$internal_nodes_annotations$duplication
     )
   
   # 2. Missing annotations
@@ -122,9 +123,9 @@ PANTHER_TREES <- Slurm_lapply(
   plan     = "collect"
   )
 
-PANTHER_TREES <- lapply(PANTHER_TREES, "[[", "tree")
+# PANTHER_TREES <- lapply(PANTHER_TREES, "[[", "tree")
 
-dat <- vector("list", NSAMPLES)
+dat <- vector("list", length(PANTHER_TREES)) # NSAMPLES)
 for (i in seq_along(PANTHER_TREES))
   dat[[i]] <- tryCatch(
     sim_annotations_panther(PANTHER_TREES[[i]]),
@@ -190,3 +191,5 @@ aa <- do.call(rbind, aa)
 boxplot(aa, at = c(1, 2), main = "Mislabeling")
 text(
   x=c(1, 2), y = colMeans(aa), labels = sprintf("%.2f", colMeans(aa)))
+
+

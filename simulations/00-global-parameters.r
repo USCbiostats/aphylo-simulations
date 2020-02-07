@@ -1,5 +1,5 @@
 # Local paths
-source("global-paths.r")
+source("../global-paths.r")
 
 opts_slurmR$set_tmp_path(STAGING_PATH)
 opts_slurmR$set_opts(
@@ -14,7 +14,7 @@ NJOBS <- 150
 if (!dir.exists(STAGING_PATH))
   dir.create(STAGING_PATH)
 
-NSAMPLES     <- 10000
+# NSAMPLES     <- 10000
 
 # MCMC
 mcmc.nsteps  <- 1e5
@@ -62,9 +62,8 @@ mcmc_lite <- function(
       nchains      = nchains,
       burnin       = burnin,
       thin         = thin,
-      multicore    = multicore,
-      conv_checker = fmcmc::convergence_gelman(1.05),
-      autostop     = 1e4
+      multicore    = FALSE,
+      conv_checker = fmcmc::convergence_gelman(freq = 1000, threshold = 1.05)
     )
     ,
     priors            = priors,

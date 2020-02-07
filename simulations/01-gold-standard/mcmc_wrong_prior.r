@@ -36,7 +36,7 @@ job <- Slurm_lapply(
   multicore  = mcmc.multicore, # TRUE,
   job_name   = "01-mcmc_wrong_prior-lapply",
   plan       = "wait",
-  export     = ls()
+  export     = c("ALPHA_PAR", "BETA_PAR", "ALPHA_PAR_WRONG", "parnames")
 )
 
 saveRDS(job, paste0(PROJECT_PATH, "/simulations/01-gold-standard/mcmc_wrong_prior-job.rds"))

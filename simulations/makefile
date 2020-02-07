@@ -3,17 +3,19 @@ slurmr := ~/./slurmr
 01:=01-gold-standard
 02:=02-missinglabel
 03:=03-misslabel
+globalpars:=00-global-parameters.r
 
 all: */mcmc_right_prior.rds */mcmc_wrong_prior.rds 
+01right: $(01)/mcmc_right_prior.rds
 
 # Data generating process
-dgp.rds: dgp.r
-	$(slurmr) dgp.r
+dgp.rds: 01-dgp.r $(globalpars)
+	$(slurmr) 01-dgp.r
 
 # Running the gold standard ----------------------------------------------------
-$(01)/mcmc_right_prior.rds: $(01)/mcmc_right_prior.r dgp.rds
+$(01)/mcmc_right_prior.rds: $(01)/mcmc_right_prior.r dgp.rds $(globalpars)
 	$(slurmr) $(01)/mcmc_right_prior.r
-$(01)/mcmc_wrong_prior.rds: $(01)/mcmc_wrong_prior.r dpg.rds
+$(01)/mcmc_wrong_prior.rds: $(01)/mcmc_wrong_prior.r dpg.rds $(globalpars)
 	$(slurmr) $(01)/mcmc_right_prior.r
 
 # Running simulations with missing data ----------------------------------------
