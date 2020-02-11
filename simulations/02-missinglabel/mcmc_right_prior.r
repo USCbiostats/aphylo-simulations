@@ -8,8 +8,8 @@
 library(aphylo)
 library(slurmR)
 
-source("simulations/00-global-parameters.r")
-dat0 <- readRDS("simulations/dgp.rds") #[1:NSAMPLES]
+source("00-global-parameters.r")
+dat0 <- readRDS("dgp.rds") #[1:NSAMPLES]
 dat0 <- lapply(dat0, "[[", "atree_i")
 
 # Setting the seed
@@ -39,7 +39,7 @@ job <- Slurm_lapply(
   multicore  = mcmc.multicore, # TRUE,
   job_name   = "02-mcmc_right_prior-lapply",
   plan       = "wait",
-  export     = ls()
+  export     = c("ALPHA_PAR", "ALPHA_PAR_WRONG", "BETA_PAR", "parnames")
 )
 
 saveRDS(job, paste0(PROJECT_PATH, "/simulations/02-missinglabel/mcmc_right_prior-job.rds"))
@@ -52,5 +52,6 @@ saveRDS(
     )
   )
 
-res
+head(res)
 job
+

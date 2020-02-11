@@ -15,18 +15,18 @@ dgp.rds: 01-dgp.r $(globalpars)
 # Running the gold standard ----------------------------------------------------
 $(01)/mcmc_right_prior.rds: $(01)/mcmc_right_prior.r dgp.rds $(globalpars)
 	$(slurmr) $(01)/mcmc_right_prior.r
-$(01)/mcmc_wrong_prior.rds: $(01)/mcmc_wrong_prior.r dpg.rds $(globalpars)
-	$(slurmr) $(01)/mcmc_right_prior.r
+$(01)/mcmc_wrong_prior.rds: $(01)/mcmc_wrong_prior.r dgp.rds $(globalpars)
+	$(slurmr) $(01)/mcmc_wrong_prior.r
 
 # Running simulations with missing data ----------------------------------------
-$(02)/mcmc_right_prior.rds: $(02)/mcmc_right_prior.r dgp.rds
+$(02)/mcmc_right_prior.rds: $(02)/mcmc_right_prior.r dgp.rds $(globalpars)
 	$(slurmr) $(02)/mcmc_right_prior.r
-$(02)/mcmc_wrong_prior.rds: $(02)/mcmc_wrong_prior.r dpg.rds
-	$(slurmr) $(02)/mcmc_right_prior.r
+$(02)/mcmc_wrong_prior.rds: $(02)/mcmc_wrong_prior.r dgp.rds $(globalpars)
+	$(slurmr) $(02)/mcmc_wrong_prior.r
 
 # Running simulations with missing data and mis labels -------------------------
-$(03)/mcmc_right_prior.rds: $(03)/mcmc_right_prior.r dgp.rds
+$(03)/mcmc_right_prior.rds: $(03)/mcmc_right_prior.r dgp.rds $(globalpars)
 	$(slurmr) $(03)/mcmc_right_prior.r
-$(03)/mcmc_wrong_prior.rds: $(03)/mcmc_wrong_prior.r dpg.rds
-	$(slurmr) $(03)/mcmc_right_prior.r
+$(03)/mcmc_wrong_prior.rds: $(03)/mcmc_wrong_prior.r dgp.rds $(globalpars)
+	$(slurmr) $(03)/mcmc_wrong_prior.r
 

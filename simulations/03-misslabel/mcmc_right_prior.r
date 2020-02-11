@@ -4,12 +4,14 @@
 #SBATCH --time=12:00:00
 #SBATCH --mem-per-cpu=4G
 #SBATCH --job-name=03-mcmc_right_prior
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=g.vegayon@gmail.com
 
 library(aphylo)
 library(slurmR)
 
-source("simulations/00-global-parameters.r")
-dat0 <- readRDS("simulations/dgp.rds") #[1:NSAMPLES]
+source("00-global-parameters.r")
+dat0 <- readRDS("dgp.rds") #[1:NSAMPLES]
 dat0 <- lapply(dat0, "[[", "atree_m")
 
 # Setting the seed
@@ -38,8 +40,8 @@ job <- Slurm_lapply(
   mc.cores   = 1L,
   multicore  = mcmc.multicore, # TRUE,
   job_name   = "03-mcmc_right_prior-lappy",
-  plan       = "submit",
-  export     = ls()
+  plan       = "wait",
+  export     = c("ALPHA_PAR", "ALPHA_PAR_WRONG", "BETA_PAR", "parnames")
 )
 
 saveRDS(job, paste0(PROJECT_PATH, "/simulations/03-misslabel/mcmc_right_prior-job.rds"))
@@ -52,4 +54,6 @@ saveRDS(
     )
   )
 
+head(res)
 job
+

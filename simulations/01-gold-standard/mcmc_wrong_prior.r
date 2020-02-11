@@ -8,8 +8,8 @@
 library(aphylo)
 library(slurmR)
 
-source("simulations/00-global-parameters.r")
-dat0 <- readRDS("simulations/dgp.rds") # [1:NSAMPLES]
+source("00-global-parameters.r")
+dat0 <- readRDS("dgp.rds") # [1:NSAMPLES]
 dat0 <- lapply(dat0, "[[", "atree")
 
 # Setting the seed
