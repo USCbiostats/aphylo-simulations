@@ -1,15 +1,16 @@
-#' ---
-#' title: "Convergence"
-#' author: "George G Vega Yon"
-#' date: "`r paste('This version:', Sys.time())`"
-#' output: pdf_document
-#' ---
-#' 
+#!/bin/sh
+#SBATCH --partition=thomas
+#SBATCH --account=lc_pdt
+#SBATCH --time=12:00:00
+#SBATCH --mem-per-cpu=8G
+#SBATCH --job-name=01-bias
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=g.vegayon@gmail.com
 
 #+ setup, echo=FALSE
 knitr::opts_chunk$set(echo = FALSE)
 
-library(sluRm)
+library(slurmR)
 
 #+ data-loading, cache=TRUE
 source("00-global-parameters.r")
@@ -17,7 +18,6 @@ source("00-bias-functions.r")
 
 dat <- readRDS("dgp.rds")
 
-library(ggplot2)
 library(magrittr)
 library(dplyr)
 library(aphylo)
