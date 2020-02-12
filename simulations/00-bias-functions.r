@@ -78,6 +78,7 @@ bias_calc <- function(fn, dat) {
     as_tibble
   
   # Final dataset
+  print(head(meta))
   dat_ <- meta %>%
     select(-estimates, -tree, -is_error, -variances, -quantiles) %>%
     left_join(coefs_pop, by = "index") %>%
@@ -105,12 +106,18 @@ bias_calc <- function(fn, dat) {
 
   message("Coverage and bias OK...")
   # Tree size
-  dat_$size_tag <- interval_tags(dat_$NLeafs, quantile(dat_$NLeafs, na.rm = TRUE),
-                               digits = 0L)
+  dat_$size_tag <- interval_tags(
+    dat_$NLeafs,
+    quantile(dat_$NLeafs, na.rm = TRUE),
+    digits = 0L
+    )
 
   # NLeafs/TreeSize
   dat_$PropLeafs <- with(dat_, NLeafs/TreeSize)
-  dat_$PropLeafs_tag <- interval_tags(dat_$PropLeafs, quantile(dat_$PropLeafs, na.rm=TRUE))
+  dat_$PropLeafs_tag <- interval_tags(
+    dat_$PropLeafs,
+    quantile(dat_$PropLeafs, na.rm=TRUE)
+    )
 
   
   dat_

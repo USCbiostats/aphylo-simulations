@@ -19,7 +19,7 @@ bias <- bias %>%
     value = "bias",
     which(grepl("(?<=bias)$", colnames(.), perl = TRUE))
     ) %>%
-  mutate(parameter = gsub("_.+", "", parameter)) 
+  mutate(parameter = gsub("_bias", "", parameter)) 
   
 
 #+ plotting, echo=TRUE
@@ -36,8 +36,10 @@ nobs <- bias %>%
 
 # Creating the plot
 parameter_labels <- c(
-  mu0  = "mu[paste(0,1)]",
-  mu1  = "mu[10]",
+  mu_d0  = "mu[paste(d0,1)]",
+  mu_d1  = "mu[d10]",
+  mu_s0  = "mu[paste(s0,1)]",
+  mu_s1  = "mu[s10]",
   psi0 = "psi[paste(0,1)]",
   psi1 = "psi[10]",
   eta0 = "eta[0]",
@@ -59,7 +61,7 @@ p <-
   coord_flip() +
   geom_vline(xintercept = 0, lty=2) + 
   # geom_vline(xintercept = 2/20 - 2/40, lty = 3, col="red") +
-  xlim(-.1,.15) +
+  xlim(-.15,.35) +
   xlab("Bias") +
   ylab("Number of Leafs") +
   scale_fill_grey()
