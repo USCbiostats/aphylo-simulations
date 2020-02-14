@@ -23,6 +23,7 @@ library(dplyr)
 library(aphylo)
 
 # Computing bias ---------------------------------------------------------------
+parnames <- c("psi0", "psi1", "mu_d0", "mu_d1", "mu_s0", "mu_s1", "Pi")
 bias_MCMC_right <- bias_calc("02-missinglabel/mcmc_right_prior.rds", dat)
 bias_MCMC_wrong <- bias_calc("02-missinglabel/mcmc_wrong_prior.rds", dat)
 
