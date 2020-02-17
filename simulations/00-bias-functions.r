@@ -23,7 +23,7 @@ bias_calc <- function(fn, dat) {
     mutate(
       pscore_rand  = sapply(pscore, "[[", "random"),
       pscore_worse = sapply(pscore, "[[", "worse"),
-      auc          = sapply(pscore, "[[", "auc"),
+      auc          = sapply(pscore, function(i) i$auc$auc),
       pscore       = sapply(pscore, "[[", "obs"),
       NLeafs    = unlist(parallel::mclapply(tree, Ntip, mc.cores = 1L)),
       TreeSize  = NLeafs + unlist(parallel::mclapply(tree, Nnode, mc.cores = 1L)),
