@@ -21,17 +21,21 @@ bias <- bias %>%
     value = "bias",
     which(grepl("(?<=bias)$", colnames(.), perl = TRUE))
   ) %>%
-  mutate(parameter = gsub("_.+", "", parameter)) 
+  mutate(parameter = gsub("_bias", "", parameter)) 
 
+# Creating the plot
 parameter_labels <- c(
-  mu0  = "mu[paste(0,1)]",
-  mu1  = "mu[10]",
+  mu_d0  = "mu[paste(d0,1)]",
+  mu_d1  = "mu[d10]",
+  mu_s0  = "mu[paste(s0,1)]",
+  mu_s1  = "mu[s10]",
   psi0 = "psi[paste(0,1)]",
   psi1 = "psi[10]",
   eta0 = "eta[0]",
   eta1 = "eta[0]",
   Pi   = "pi"
 )
+
 
 bias$parameter <- factor(
   match(bias$parameter, names(parameter_labels)),
@@ -53,7 +57,7 @@ p_wrong <-
   facet_grid( ~ parameter, labeller = labeller(parameter=label_parsed)) +
   coord_flip() +
   geom_vline(xintercept = 0, lty=2) + 
-  xlim(-.1,.12) +
+  xlim(-.5,.5) +
   xlab("Bias") +
   ylab("Proportion of Missing Labels") +
   scale_fill_grey()
@@ -71,7 +75,7 @@ p_right <-
   facet_grid( ~ parameter, labeller = labeller(parameter=label_parsed)) +
   coord_flip() +
   geom_vline(xintercept = 0, lty=2) + 
-  xlim(-.1,.06) +
+  xlim(-.5,.5) +
   xlab("Bias") +
   ylab("Proportion of Missing Labels") +
   scale_fill_grey()
@@ -86,18 +90,23 @@ bias <- bias %>%
   as_tibble %>%
   filter(Missing < 1, PropOf0 > 0, PropOf0 < 1) %>%
   mutate(
-    pscore      = pscore/pscore_worse,
-    pscore_rand = pscore_rand/pscore_worse,
+    pscore      = 1 - pscore/pscore_worse,
+    pscore_rand = 1 - pscore_rand/pscore_worse,
   ) %>%
   select(
     index, Prior, size_tag, miss_tag, PropLeafs_tag,
-    pscore, pscore_rand) %>%
+    pscore, pscore_rand, auc) %>%
   gather(
     key = "Type",
     value = "Score",
-    starts_with("pscore")
+    starts_with("pscore"), auc
   ) %>%
-  mutate(Type = if_else(Type == "pscore", "Model", "Random")) 
+  mutate(
+    Type = if_else(
+      Type == "pscore",
+      "P. Score Obs.",
+      ifelse(Type == "auc", "AUC", "P. Score Rand."))
+  )
 
 ggplot(bias, aes(Score, y = miss_tag)) +
   geom_density_ridges() +
@@ -105,7 +114,7 @@ ggplot(bias, aes(Score, y = miss_tag)) +
   theme_minimal(base_family = "serif") +
   xlab("Prediction Score") +
   ylab("") +
-  xlim(0, .6) +
+  xlim(0, 1) +
   theme(axis.text.x = element_text(angle=45, hjust = 1)) +
   coord_flip()
 

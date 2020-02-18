@@ -61,7 +61,7 @@ p <-
   coord_flip() +
   geom_vline(xintercept = 0, lty=2) + 
   # geom_vline(xintercept = 2/20 - 2/40, lty = 3, col="red") +
-  xlim(-.15,.35) +
+  xlim(-.5,.5) +
   xlab("Bias") +
   ylab("Number of Leafs") +
   scale_fill_grey()
@@ -80,18 +80,23 @@ bias <- bias %>%
   as_tibble %>%
   filter(Missing < 1, PropOf0 > 0, PropOf0 < 1) %>%
   mutate(
-    pscore      = pscore/pscore_worse,
-    pscore_rand = pscore_rand/pscore_worse,
+    pscore      = 1 - pscore/pscore_worse,
+    pscore_rand = 1 - pscore_rand/pscore_worse,
   ) %>%
   select(
     index, Prior, size_tag, miss_tag, PropLeafs_tag,
-    pscore, pscore_rand) %>%
+    pscore, pscore_rand, auc) %>%
   gather(
     key = "Type",
     value = "Score",
-    starts_with("pscore")
-  ) %>%
-  mutate(Type = if_else(Type == "pscore", "Model", "Random")) 
+    starts_with("pscore"), auc
+  ) %>% 
+  mutate(
+    Type = if_else(
+      Type == "pscore",
+      "P. Score Obs.",
+      ifelse(Type == "auc", "AUC", "P. Score Rand."))
+  )
 
 ggplot(bias, aes(y=Score, x=Type)) +
   geom_violin() +
