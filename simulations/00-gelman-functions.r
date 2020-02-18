@@ -1,6 +1,6 @@
 # Extract and compile Gelman tests
 library(aphylo)
-library(amcmc)
+library(fmcmc)
 library(coda)
 
 # This function extract the gelman statistics for the ith element of 
@@ -15,7 +15,7 @@ get_gelman <- function(x, obj) {
   if (inherits(ans, "error")) {
     print(ans)
     message("Element number -",x,"- has errors.")
-    return(rep(NA, 5*2 + 1))
+    return(NULL)
   }
   
   # Coercing into a vector
@@ -36,3 +36,4 @@ get_gelman <- function(x, obj) {
 
 
 library(parallel)
+

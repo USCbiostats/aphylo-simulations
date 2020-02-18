@@ -1,15 +1,33 @@
+#!/bin/sh
+#SBATCH --account=lc_pdt
+#SBATCH --partition=thomas
+#SBATCH --time=05:00:00
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=8GB
+#SBATCH --job-name=03-gelman
+
 rm(list = ls())
 
-source("simulations/00-gelman-functions.r")
+source("00-gelman-functions.r")
 
 # Checkingout Right prior estimates --------------------------------------------
-ans_MCMC_right_prior <- readRDS("simulations/02-missing/mcmc_right_prior_estimates.rds")
-ans_MCMC_wrong_prior <- readRDS("simulations/02-missing/mcmc_wrong_prior_estimates.rds")
+ans_right_prior <- readRDS("03-misslabel/mcmc_right_prior.rds")
+ans_wrong_prior <- readRDS("03-misslabel/mcmc_wrong_prior.rds")
+
+ans_right_prior <- ans_right_prior[!sapply(ans_right_prior, inherits, what = "error")]
+ans_wrong_prior <- ans_wrong_prior[!sapply(ans_wrong_prior, inherits, what = "error")]
 
 # Extracting the data
-N <- length(ans_MCMC_right_prior)
-gelmans_right <- do.call(rbind, parallel::mclapply(1:N, get_gelman, obj = ans_MCMC_right_prior, mc.cores=10L))
-gelmans_wrong <- do.call(rbind, parallel::mclapply(1:N, get_gelman, obj = ans_MCMC_wrong_prior, mc.cores=10L))
+N <- length(ans_right_prior)
+gelmans_right <- lapply(1:N, get_gelman, obj = ans_right_prior)
+gelmans_wrong <- lapply(1:N, get_gelman, obj = ans_wrong_prior)
+
+head(gelmans_right)
+head(gelmans_wrong)
+
+gelmans_right <- do.call(rbind, gelmans_right)
+gelmans_wrong <- do.call(rbind, gelmans_wrong)
+
 
 library(ggplot2)
 library(magrittr)
@@ -23,12 +41,12 @@ gelmans_wrong$Prior <- "Wrong"
 gelmans <- rbind(gelmans_right, gelmans_wrong)
 
 # Saving the data
-saveRDS(gelmans, file = "simulations/02-missing/gelman.rds")
+saveRDS(gelmans, file = "03-misslabel/gelman.rds")
 
 library(tidyr)
 
 graphics.off()
-pdf("simulations/02-missing/gelman.pdf")
+pdf("03-misslabel/gelman.pdf")
 gelmans %>%
   gather("Statistic", "Score", -Prior) %>%
   subset(Statistic == "mpsrf") %>%

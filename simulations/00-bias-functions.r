@@ -12,16 +12,18 @@ bias_calc <- function(fn, dat) {
     ) %>%
     filter(!is_error) %>%
     mutate(
-      estimates = parallel::mclapply(tree, coef, mc.cores=1L),
-      variances = parallel::mclapply(tree, function(i) diag(vcov(i)), mc.cores=1L),
-      quantiles = parallel::mclapply(tree, function(t_) {
+      estimates = lapply(tree, coef),
+      variances = lapply(tree, function(i) diag(vcov(i))),
+      quantiles = lapply(tree, function(t_) {
         apply(do.call(rbind, t_$hist), 2L, quantile, probs = c(0.025, .975))
-      }, mc.cores=1L),
-      pscore = parallel::mclapply(tree, function(t_) {
+      }) ,
+      pscore = lapply(tree, function(t_) {
         tryCatch(prediction_score(t_), error=function(e) e)
-      }, mc.cores = 1L),
+      })) %>%
+    mutate(
       pscore_rand  = sapply(pscore, "[[", "random"),
       pscore_worse = sapply(pscore, "[[", "worse"),
+      auc          = sapply(pscore, function(i) i$auc$auc),
       pscore       = sapply(pscore, "[[", "obs"),
       NLeafs    = unlist(parallel::mclapply(tree, Ntip, mc.cores = 1L)),
       TreeSize  = NLeafs + unlist(parallel::mclapply(tree, Nnode, mc.cores = 1L)),
@@ -30,8 +32,8 @@ bias_calc <- function(fn, dat) {
       PropOf0   = PropOf0/(NLeafs - Missing),
       Missing   = Missing/NLeafs
     ) 
-  message("Metadata OK...")
-  
+  message("Metadata OK... prediction scores now")
+
   # Merging with population data
   coefs_pop <- tibble(
     index = 1L:length(dat),

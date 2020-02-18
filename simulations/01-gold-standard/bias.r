@@ -23,6 +23,7 @@ library(dplyr)
 library(aphylo)
 
 # Computing bias ---------------------------------------------------------------
+parnames <- c("mu_d0", "mu_d1", "mu_s0", "mu_s1", "Pi")
 bias_MCMC_right <- bias_calc("01-gold-standard/mcmc_right_prior.rds", dat)
 bias_MCMC_wrong <- bias_calc("01-gold-standard/mcmc_wrong_prior.rds", dat)
 
