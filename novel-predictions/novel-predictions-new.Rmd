@@ -17,8 +17,6 @@ library(aphylo)
 library(xtable)
 ```
 
-## Estimates
-
 ```{r read-data}
 files <- list.files(pattern = "^(mcmc|mle).+\\.rds", full.names = FALSE)
 estimates <- lapply(files, readRDS)
@@ -27,16 +25,16 @@ estimates <- lapply(files, readRDS)
 estimates0 <- estimates
 
 # Splitting chains
-for (i in which(grepl("^mcmc", files))) {
+for (i in which(grepl("^mcmc", sapply(estimates, "[[", "method")))) {
   estimates[[i]] <- window(
     x     = estimates[[i]],
-    start = floor(coda::niter(estimates[[i]]$hist) / 2)
+    start = (end(estimates[[i]]$hist) - start(estimates[[i]]$hist))/2
   )
 }
 
 ```
 
-```{r coef, results='asis', cache = TRUE}
+```{r computing-tables, results='asis', cache = TRUE, dependson=-1}
 theta <- do.call(cbind, lapply(estimates, coef))
 vars  <- do.call(cbind, lapply(lapply(estimates, vcov), diag))
 
@@ -76,18 +74,22 @@ tab <- rbind(
   `P. Score (obs)` = sprintf("%.2f", pss[1,]),
   `P. Score (random)` = sprintf("%.2f", pss[2,])
   )
+```
 
+```{r writing-tables}
 # Splitting by type
 tab_inferred <- tab[, tab["Inferred",] == "Yes"]
 tab_observed <- tab[, tab["Inferred",] == "No"]
 
-for (tab. in c("tab_inferred", "tab_observed", "tab")) {
+tables <- list()
+for (tab. in c("tab_inferred", "tab_observed")) {
   tmptab <- tempfile()
   TAB.   <- get(tab.)
-  TAB. <- xtable(TAB., caption = paste0(
-    "Parameter estimates using different estimation methods, priors, and ",
-    "types of annotations."
-    ))
+  TAB. <- xtable(TAB., caption = "")
+  # paste0(
+  #   "Parameter estimates using different estimation methods, priors, and ",
+  #   "types of annotations."
+  #   ))
   print(TAB., file = tmptab, booktabs = TRUE, scalebox = .6, 
         comment = FALSE, sanitize.text.function= function(i) i)
   TAB. <- readLines(tmptab)
@@ -98,10 +100,29 @@ for (tab. in c("tab_inferred", "tab_observed", "tab")) {
   )
   TAB.[grepl("Method", TAB.)] <- paste("\\midrule", TAB.[grepl("Method", TAB.)])
   
-  cat(TAB., sep="\n")
+  tables[[tab.]] <- TAB.
 }
 
 ```
+
+## Estimates (fully annotated trees)
+
+\footnotesize
+\begin{minipage}{.47\linewidth}
+\centering
+Fully annotated trees \\
+```{r table-inferred, results='asis'}
+cat(tables[["tab_inferred"]])
+```
+\end{minipage}
+\begin{minipage}{.47\linewidth}
+\centering
+Partially annotated trees \\
+```{r table-observed, results='asis'}
+cat(tables[["tab_observed"]])
+```
+\end{minipage}
+
 
 ## MCMC convergence: Fully annotated (Unif prior)
 
@@ -249,7 +270,7 @@ ggplot(dat, aes(y = AUC, x = Model)) +
 # http://sifter.berkeley.edu/results-id=6810550
 tree <- readRDS("PTHR11409.rds")
 
-aucs <- lapply(1:3, function(i) aphylo::auc(tree$tip.annotation[,i+3], tree$tip.annotation[,i] ))
+aucs <- lapply(1:3, function(i) aphylo::auc(tree$tip.annotation[,i+3], tree$tip.annotation[,i]))
 
 plot(
   tree,

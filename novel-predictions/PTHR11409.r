@@ -2,7 +2,7 @@ library(aphylo)
 library(data.table)
 
 # Loading the model parameters
-model <- readRDS("novel-predictions/parameter_estimates_mcmc_partially_annotated_no_prior.rds")
+model <- readRDS("novel-predictions/mcmc_partially_annotated_no_prior.rds")
 
 # Loading the ADENOSINE DEAMINASE (PTHR11409)
 tree  <- read_panther("data-raw/PTHR11409.tree")
@@ -48,7 +48,7 @@ tree <- new_aphylo(
 
 summary(tree)
 
-tree <- tree[c("GO:0004000", "GO:0006154", "GO:0005615")]
+tree <- tree[, c("GO:0004000", "GO:0006154", "GO:0005615")]
 
 # samp <- do.call(rbind, model$hist)
 # idx  <- sample.int(nrow(samp), 1000, TRUE)
