@@ -57,6 +57,10 @@ tree <- tree[, c("GO:0004000", "GO:0006154", "GO:0005615")]
 #   pr2 <- pr2 + predict_pre_order(model, newdata = tree, params = samp[idx[i],])/1000
 # }
 
+prs <- lapply(seq_len(Nann(tree)), function(i) {
+  predict(model, newdata = tree[, i], loo = TRUE, nsamples = 1000, ncores = 4L)
+  })
+
 pr <- predict(model, newdata = tree, loo = TRUE)
 
 # colnames(pr2) <- paste("Pred. MCMC", colnames(pr))
@@ -67,6 +71,13 @@ tree$node.annotation <- cbind(tree$node.annotation, pr[-c(1:Ntip(tree)),])
 # tree$tip.annotation <- cbind(tree$tip.annotation, pr2[1:Ntip(tree),])
 # tree$node.annotation <- cbind(tree$node.annotation, pr2[-c(1:Ntip(tree)),])
 
-saveRDS(tree, "novel-predictions/PTHR11409.rds")
+trees <- lapply(seq_along(prs), function(p) {
+  tree <- tree[,p]
+  tree$tip.annotation <- cbind(tree$tip.annotation, prs[[p]][1:Ntip(tree),])
+  tree$node.annotation <- cbind(tree$node.annotation, prs[[p]][-c(1:Ntip(tree)),])
+  tree
+})
+
+saveRDS(trees, "novel-predictions/PTHR11409.rds")
 
 
