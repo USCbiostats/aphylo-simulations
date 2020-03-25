@@ -6,7 +6,7 @@
 #SBATCH --job-name=one-tree-at-a-time
 #SBATCH --output=one-tree-at-a-time.out
 
-library(sluRm)
+library(slurmR)
 library(aphylo)
 
 cl <- makeSlurmCluster(
@@ -34,7 +34,7 @@ setup <- tryCatch(clusterEvalQ(cl, {
   
   # Common parameters
   prior.  <- bprior(c(2,2,9,9,2,2,2,2,2), c(9,9,2,2,9,9,9,9,9))
-  warmup. <- 1000
+  warmup. <- 500
   freq.   <- 10
   lb.     <- 1e-5
   ub.     <- 1 - 1e-5
@@ -42,7 +42,7 @@ setup <- tryCatch(clusterEvalQ(cl, {
   mcmc. <- list(
     nchains      = 4L,
     multicore    = FALSE, 
-    burnin       = 500L,
+    burnin       = 0L,
     nsteps       = 10000L,
     conv_checker = NULL,
     kernel       = fmcmc::kernel_adapt(lb = lb., ub = ub., warmup = warmup., freq = freq.),
@@ -64,7 +64,7 @@ set.seed(1362)
 trees <- readRDS("data/candidate_trees.rds")
 trees <- do.call(c, trees)
 trees <- unlist(lapply(trees, function(d) {
-  lapply(1:Nann(d), function(i) d[i])
+  lapply(1:Nann(d), function(i) d[,i])
 }), recursive = FALSE)
 trees <- do.call(c, trees)
 
@@ -81,7 +81,7 @@ res <- parLapply(
       mle  <- aphylo_mle(t. ~ psi + mu_d + mu_s + Pi)
       
       # Estimating MCMC
-      mcmc.$kernel <- fmcmc::kernel_adapt(
+      mcmc.$kernel <- fmcmc::kernel_ram(
         lb = lb., ub = ub., warmup = warmup., freq = freq.
         )
       
@@ -99,6 +99,6 @@ res <- parLapply(
 )
 
 
-saveRDS(res, "test.rds")
+saveRDS(res, "estimates_disjoint.rds")
 stopCluster(cl)
 
