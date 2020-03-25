@@ -8,6 +8,10 @@ library(magrittr)
 
 source("simulations/00-bias-functions.r")
 bias <- readRDS("simulations/02-missinglabel/bias.rds")
+conv <- readRDS("simulations/02-missinglabel/gelman.rds")
+
+# Filtering according to convergence
+bias <- bias[conv$mpsrf <= 1.1, ]
 
 bias$miss_tag <- interval_tags(
   bias$Missing, c(.1, .3, .5, .7, .9, 1))
@@ -85,6 +89,9 @@ ggsave("simulations/02-missinglabel/bias_plots_02_right_prior.pdf", width = 7, h
 # Prediction score -------------------------------------------------------------
 library(tidyr)
 bias <- readRDS("simulations/02-missinglabel/bias.rds")
+
+# Filtering according to convergence
+bias <- bias[conv$mpsrf <= 1.1, ]
 
 bias <- bias %>%
   as_tibble %>%

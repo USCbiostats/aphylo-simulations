@@ -92,7 +92,7 @@ res <- parLapply(
       )
       
       # Returning prediction
-      prediction_score(mcmc)
+      prediction_score(mcmc, loo = TRUE)
     }, error = function(e) e)
     
   }

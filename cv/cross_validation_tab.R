@@ -37,8 +37,8 @@ prescore <- lapply(cross_validation, "[[", "pscore") %>%
       s,
       tibble(
         term          = colnames(predicted),
-        pscore_model    = obs[1]/worse,
-        pscore_rand   = random/worse,
+        pscore_model  = obs[1],
+        pscore_rand   = random,
         ann_expected  = list(expected),
         ann_predicted = list(predicted)
         )
@@ -189,3 +189,4 @@ plot(
   main = sprintf("Tree: %s\nTerm: %s", best_and_worse$Tree[6], best_and_worse$Term[6])
 )
 dev.off()
+

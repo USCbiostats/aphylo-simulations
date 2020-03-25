@@ -7,6 +7,10 @@ library(ggridges)
 library(magrittr)
 
 bias <- readRDS("simulations/01-gold-standard/bias.rds")
+conv <- readRDS("simulations/01-gold-standard/gelman.rds")
+
+# Filtering according to convergence
+bias <- bias[conv$mpsrf <= 1.1, ]
 
 bias <- bias %>%
   as_tibble %>%
@@ -75,6 +79,9 @@ dev.off()
 # Prediction score -------------------------------------------------------------
 library(tidyr)
 bias <- readRDS("simulations/01-gold-standard/bias.rds")
+
+# Filtering according to convergence
+bias <- bias[conv$mpsrf <= 1.1, ]
 
 bias <- bias %>%
   as_tibble %>%
