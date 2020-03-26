@@ -20,7 +20,7 @@ cl <- makeSlurmCluster(
 
 # Loading the aphylo package
 setup <- tryCatch(clusterEvalQ(cl, {
-  library(sluRm)
+  library(slurmR)
   library(aphylo)
   library(coda)
   
@@ -34,7 +34,7 @@ setup <- tryCatch(clusterEvalQ(cl, {
   
   # Common parameters
   prior.  <- bprior(c(2,2,9,9,2,2,2,2,2), c(9,9,2,2,9,9,9,9,9))
-  warmup. <- 500
+  warmup. <- 1000
   freq.   <- 10
   lb.     <- 1e-5
   ub.     <- 1 - 1e-5
@@ -42,10 +42,10 @@ setup <- tryCatch(clusterEvalQ(cl, {
   mcmc. <- list(
     nchains      = 4L,
     multicore    = FALSE, 
-    burnin       = 0L,
+    burnin       =  5000L,
     nsteps       = 10000L,
     conv_checker = NULL,
-    kernel       = fmcmc::kernel_adapt(lb = lb., ub = ub., warmup = warmup., freq = freq.),
+    kernel       = fmcmc::kernel_adapt(lb = lb., ub = ub., warmup = warmup.),
     thin         = 10L
   )
 }), error = function(e) e)
@@ -61,7 +61,7 @@ set.seed(1362)
 # Case 1: (Almost) Fully annotated trees ---------------------------------------
 
 # Data preprocessing
-trees <- readRDS("data/candidate_trees.rds")
+trees <- readRDS("../data/candidate_trees.rds")
 trees <- do.call(c, trees)
 trees <- unlist(lapply(trees, function(d) {
   lapply(1:Nann(d), function(i) d[,i])
@@ -81,8 +81,8 @@ res <- parLapply(
       mle  <- aphylo_mle(t. ~ psi + mu_d + mu_s + Pi)
       
       # Estimating MCMC
-      mcmc.$kernel <- fmcmc::kernel_ram(
-        lb = lb., ub = ub., warmup = warmup., freq = freq.
+      mcmc.$kernel <- fmcmc::kernel_adapt(
+        lb = lb., ub = ub., warmup = warmup. #, freq = freq.
         )
       
       mcmc <- aphylo_mcmc(
