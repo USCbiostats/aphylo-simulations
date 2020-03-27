@@ -10,12 +10,11 @@ library(slurmR)
 library(aphylo)
 
 cl <- makeSlurmCluster(
-  20L,
+  40L,
   account   = "lc_pdt",
   partition = "thomas",
   time      = "04:00:00",
-  `mem-per-cpu` = "2G",
-  offspring_per_job = 4L
+  `mem-per-cpu` = "2G"
   )
 
 # Loading the aphylo package

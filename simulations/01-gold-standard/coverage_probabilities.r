@@ -24,8 +24,10 @@ summ <- bias %>%
   mutate(Size = paste0("{", size_tag, "}")) %>%
   select(-size_tag) %>%
   rename(
-    `$\\mu_{01}$` = mu0,
-    `$\\mu_{10}$` = mu1,
+    `$\\mu_{d01}$` = mu_d0,
+    `$\\mu_{d10}$` = mu_d1,
+    `$\\mu_{s01}$` = mu_s0,
+    `$\\mu_{s10}$` = mu_s1,
     # `$\\psi_{01}$` = psi0,
     # `$\\psi_{10}$` = psi1,
     `$\\pi$` = Pi,
