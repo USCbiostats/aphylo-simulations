@@ -42,12 +42,12 @@ tab  <- matrix(sprintf("%.2f", theta), ncol = ncol(theta))
 dimnames(tab) <- list(rownames(theta), paste0("(", 1:ncol(tab), ")"))
 
 varnames <- c(
-  psi0  = "$\\psi_0$",
-  psi1  = "$\\psi_1$",
-  mu_d0 = "$\\mu_{d0}$",
-  mu_d1 = "$\\mu_{d1}$",
-  mu_s0 = "$\\mu_{s0}$",
-  mu_s1 = "$\\mu_{s1}$",
+  psi0  = "$\\psi_{01}$",
+  psi1  = "$\\psi_{10}$",
+  mu_d0 = "$\\mu_{d01}$",
+  mu_d1 = "$\\mu_{d10}$",
+  mu_s0 = "$\\mu_{s01}$",
+  mu_s1 = "$\\mu_{s10}$",
   Pi    = "$\\pi$"
   )
 
@@ -85,6 +85,7 @@ tables <- list()
 for (tab. in c("tab_inferred", "tab_observed")) {
   tmptab <- tempfile()
   TAB.   <- get(tab.)
+  colnames(TAB.) <- sprintf("(%i)", 1:ncol(TAB.))
   TAB. <- xtable(TAB., caption = "")
   # paste0(
   #   "Parameter estimates using different estimation methods, priors, and ",
@@ -104,6 +105,13 @@ for (tab. in c("tab_inferred", "tab_observed")) {
 }
 
 ```
+
+```{r nice-examples}
+# This is without priors MCMC partially annotated
+plot(estimates[[3]], which.tree = 104, nsamples = 500)
+
+```
+
 
 ## Estimates (fully annotated trees)
 
@@ -239,10 +247,10 @@ plot(
 ```{r comparing-accuracy, eval=TRUE, echo=FALSE, fig.width=6, fig.height=6, out.width=".7\\linewidth"}
 
 # Disjoint
-estimates_disjoint <- readRDS("one-tree-at-a-time.rds")
+estimates_disjoint <- readRDS("estimates_disjoint.rds")
 
 aucs_dj <- sapply(estimates_disjoint, function(i) {
-  aphylo::auc(i$predicted, i$expected)$auc
+  i$auc$auc
 })
 
 pss_dj  <- sapply(estimates_disjoint, function(i) {
@@ -250,7 +258,7 @@ pss_dj  <- sapply(estimates_disjoint, function(i) {
 })
 
 # Joint
-ps_j <- ps[names(estimates) == "MCMC partially annotated prior"][[1]]
+ps_j <- ps[names(estimates) == "MCMC partially annotated no prior"][[1]]
 aucs_j <- sapply(ps_j, function(i) {i$auc$auc})
 pss_j  <- sapply(ps_j, function(i) {
   with(i, c(obs, random))
@@ -266,19 +274,22 @@ dat <- rbind(
   data.frame(AUC = aucs_dj, Model = "One-at-a-time")
 )
 
+plot(aucs_dj, ans[,1])
+
 library(ggplot2, quietly = TRUE)
 ggplot(dat, aes(y = AUC, x = Model)) +
-  geom_violin() + 
-  labs(x = "Estimation method") + 
+  geom_boxplot() + 
+  labs(x = "Estimation method", y = "AUC (LOO)") + 
   annotate(
     "text",
     x     = 2,
-    y     = 0,
+    y     = -.1,
     label = with(
       ttest,
       sprintf("Paired t-test 95%% CI [%.2f, %.2f]", conf.int[1], conf.int[2])
       )
     )
+ggsave("comparing-accuracy-1.pdf", width = 5, height = 5, units = "in")
 ```
 
 

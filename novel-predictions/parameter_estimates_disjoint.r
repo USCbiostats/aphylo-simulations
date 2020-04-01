@@ -12,7 +12,7 @@ library(slurmR)
 library(aphylo)
 
 cl <- makeSlurmCluster(
-  20L,
+  40L,
   account   = "lc_pdt",
   partition = "thomas",
   time      = "04:00:00",
