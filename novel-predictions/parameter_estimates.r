@@ -151,6 +151,21 @@ ans_mcmc_partially_annotated_no_prior <- aphylo_mcmc(
   control = mcmc.
 )
 
+mcmc.$nsteps <- 50000
+
+set.seed(173812)
+mcmc.$kernel <- fmcmc::kernel_adapt(
+  lb = lb., ub = ub., warmup = warmup., freq = 1L
+  )
+mcmc.$conv_checker <- fmcmc::convergence_gelman(100)
+params0 <- gen_starts(coef(ans_mle_partially_annotated_no_prior), mcmc.$nchains)
+params0[,1:2] <- .05
+ans_mcmc_partially_annotated_no_prior <- aphylo_mcmc(
+  partially_annotated ~ psi(0,1) + mu_d + mu_s + Pi,
+  params  = params0,
+  control = mcmc.
+)
+
 message("Partially annotated: MCMC No prior done.")
 
 saveRDS(

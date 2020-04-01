@@ -48,7 +48,7 @@ op <- par(xpd = NA)
 
 # Example 1 --------------------------------------------------------------------
 graphics.off()
-pdf("example-trees-good1-loo.pdf", width = 6, height = 6)
+svg("example-trees-good1-loo.svg", width = 6, height = 6)
 plot(
   x          = estimates[[4]],
   which.tree = 11,

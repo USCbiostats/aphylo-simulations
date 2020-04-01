@@ -250,15 +250,15 @@ plot(
 estimates_disjoint <- readRDS("estimates_disjoint.rds")
 
 aucs_dj <- sapply(estimates_disjoint, function(i) {
-  i$auc$auc
+  i$ps$auc$auc
 })
 
 pss_dj  <- sapply(estimates_disjoint, function(i) {
-  with(i, c(obs, random))
+  with(i$ps, c(obs, random))
 })
 
 # Joint
-ps_j <- ps[names(estimates) == "MCMC partially annotated no prior"][[1]]
+ps_j <- ps[names(estimates) == "MCMC partially annotated prior"][[1]]
 aucs_j <- sapply(ps_j, function(i) {i$auc$auc})
 pss_j  <- sapply(ps_j, function(i) {
   with(i, c(obs, random))
@@ -272,6 +272,11 @@ ttest <- t.test(aucs_j, aucs_dj, paired = TRUE)
 dat <- rbind(
   data.frame(AUC = aucs_j, Model = "Pooled"),
   data.frame(AUC = aucs_dj, Model = "One-at-a-time")
+)
+
+t.test(
+  y = sapply(estimates_disjoint, function(i) i$ps$obs),
+  x = pss_j[1,], paired = TRUE, var.equal = FALSE
 )
 
 plot(aucs_dj, ans[,1])
