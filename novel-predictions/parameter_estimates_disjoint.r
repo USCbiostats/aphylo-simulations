@@ -5,6 +5,8 @@
 #SBATCH --mem-per-cpu=8G
 #SBATCH --job-name=one-tree-at-a-time
 #SBATCH --output=one-tree-at-a-time.out
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=g.vegayon@gmail.com
 
 library(slurmR)
 library(aphylo)
@@ -14,9 +16,8 @@ cl <- makeSlurmCluster(
   account   = "lc_pdt",
   partition = "thomas",
   time      = "04:00:00",
-  `mem-per-cpu` = "2G",
-  offspring_per_job = 4L
-  )
+  `mem-per-cpu` = "2G"
+)
 
 # Loading the aphylo package
 setup <- tryCatch(clusterEvalQ(cl, {
@@ -78,7 +79,7 @@ res <- parLapply(
     
     # Finding MLEs
     tryCatch({
-      mle  <- aphylo_mle(t. ~ psi + mu_d + mu_s + Pi)
+      mle  <- aphylo_mle(t. ~ psi + mu_d + mu_s + Pi, priors = prior.)
       
       # Estimating MCMC
       mcmc.$kernel <- fmcmc::kernel_adapt(
@@ -87,12 +88,18 @@ res <- parLapply(
       
       mcmc <- aphylo_mcmc(
         t. ~ psi + mu_d + mu_s + Pi,
+        priors  = prior.,
         control = mcmc.,
         params  = shrink_towards_half(coef(mle))
       )
       
       # Returning prediction
-      prediction_score(mcmc, loo = TRUE)
+      list(
+        ps = prediction_score(mcmc, loo = TRUE),
+        coef = coef(mcmc),
+        vcov = vcov(mcmc),
+        gelman = coda::gelman.diag(mcmc$hist)
+      )
     }, error = function(e) e)
     
   }
