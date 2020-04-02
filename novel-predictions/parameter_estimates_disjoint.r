@@ -12,7 +12,7 @@ library(slurmR)
 library(aphylo)
 
 cl <- makeSlurmCluster(
-  40L,
+  60L,
   account   = "lc_pdt",
   partition = "thomas",
   time      = "04:00:00",
@@ -43,9 +43,9 @@ setup <- tryCatch(clusterEvalQ(cl, {
   mcmc. <- list(
     nchains      = 4L,
     multicore    = FALSE, 
-    burnin       =  5000L,
-    nsteps       = 10000L,
-    conv_checker = NULL,
+    burnin       = 2000L,
+    nsteps       = 5000L,
+    conv_checker = fmcmc::convergence_gelman(1000),
     kernel       = fmcmc::kernel_adapt(lb = lb., ub = ub., warmup = warmup.),
     thin         = 10L
   )
@@ -86,19 +86,36 @@ res <- parLapply(
         lb = lb., ub = ub., warmup = warmup. #, freq = freq.
         )
       
-      mcmc <- aphylo_mcmc(
+      set.seed(8647)
+      mcmc_beta <- aphylo_mcmc(
         t. ~ psi + mu_d + mu_s + Pi,
         priors  = prior.,
         control = mcmc.,
         params  = shrink_towards_half(coef(mle))
       )
-      
+
+      # Without prior
+      mcmc.$kernel <- fmcmc::kernel_adapt(
+        lb = lb., ub = ub., warmup = warmup. #, freq = freq.
+        )
+      set.seed(8647)
+      mcmc_unif <- aphylo_mcmc(
+        t. ~ psi + mu_d + mu_s + Pi,
+        priors  = uprior(),
+        control = mcmc.,
+        params  = shrink_towards_half(coef(mle))
+      )
+     
       # Returning prediction
       list(
-        ps = prediction_score(mcmc, loo = TRUE),
-        coef = coef(mcmc),
-        vcov = vcov(mcmc),
-        gelman = coda::gelman.diag(mcmc$hist)
+        ps_unif = prediction_score(mcmc_unif, loo = TRUE),
+        ps_beta = prediction_score(mcmc_beta, loo = TRUE),
+        coef_unif = coef(mcmc_unif),
+        vcov_unif = vcov(mcmc_unif),
+        coef_beta = coef(mcmc_beta),
+        vcov_beta = vcov(mcmc_beta),
+        conv_unif = coda::gelman.diag(mcmc_unif$hist),
+        conv_beta = coda::gelman.diag(mcmc_beta$hist)
       )
     }, error = function(e) e)
     
