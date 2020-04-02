@@ -258,7 +258,7 @@ pss_dj  <- sapply(estimates_disjoint, function(i) {
 })
 
 # Joint
-ps_j <- ps[names(estimates) == "MCMC partially annotated prior"][[1]]
+ps_j <- ps[[1]]#[names(estimates) == "MCMC partially annotated no prior"][[1]]
 aucs_j <- sapply(ps_j, function(i) {i$auc$auc})
 pss_j  <- sapply(ps_j, function(i) {
   with(i, c(obs, random))
@@ -279,16 +279,26 @@ t.test(
   x = pss_j[1,], paired = TRUE, var.equal = FALSE
 )
 
+dat <- rbind(
+  data.frame(x = pss_j[1,], Model = "Pooled"),
+  data.frame(x = sapply(estimates_disjoint, function(i) i$ps$obs), Model = "One-at-a-time")
+)
+
 plot(aucs_dj, ans[,1])
 
+ttest <- t.test(
+  y = sapply(estimates_disjoint, function(i) i$ps$obs),
+  x = pss_j[1,], paired = TRUE, var.equal = FALSE
+)
+
 library(ggplot2, quietly = TRUE)
-ggplot(dat, aes(y = AUC, x = Model)) +
+ggplot(dat, aes(y = x, x = Model)) +
   geom_boxplot() + 
-  labs(x = "Estimation method", y = "AUC (LOO)") + 
+  labs(x = "Estimation method", y = "Prediction score") + 
   annotate(
     "text",
     x     = 2,
-    y     = -.1,
+    y     = .5,
     label = with(
       ttest,
       sprintf("Paired t-test 95%% CI [%.2f, %.2f]", conf.int[1], conf.int[2])
