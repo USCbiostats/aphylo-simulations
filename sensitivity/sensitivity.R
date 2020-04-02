@@ -163,7 +163,8 @@ for (i in seq_along(ans)) {
     border = gray(.4),
     col    = colors.,
     outline = FALSE,
-    boxwex = .7
+    boxwex = .7,
+    ylim = c(0,1)
   )
   
   lines(
@@ -186,7 +187,8 @@ boxplot(
   names  = lose_seq, 
   border = gray(.4),
   outline = FALSE,
-  boxwex = .7 #,
+  boxwex = .7, #,
+  ylim   = c(0,1)
   # ylab   = "AUC"
 )
 
