@@ -131,7 +131,7 @@ t.test(
 )
 
 # For now, saving all
-save.image("sensitivity/sensitivity.rda", compress = FALSE)
+save.image("fig/sensitivity.rda", compress = FALSE)
 
 pseq_nam <- sprintf("%.2f", pseq)
 
@@ -146,7 +146,7 @@ expressions <- list(
 )
 
 graphics.off()
-pdf("sensitivity/sensitivity.pdf", width = 6, height = 8)
+pdf("fig/sensitivity.pdf", width = 6, height = 8)
 op <- par(mfrow = c(4, 2), mar = c(2.5,2,2.5,1), oma = c(4,2,0,0))
 for (i in seq_along(ans)) {
   # Coloring the closest one
