@@ -3,7 +3,7 @@ library(data.table)
 
 files <- list.files(
   pattern = "^(mcmc|mle).+\\.rds",
-  path    = "../novel-predictions",
+  path    = "novel-predictions",
   full.names = TRUE
   )
 estimates <- lapply(files, readRDS)
@@ -15,8 +15,16 @@ tree_names <- sapply(estimates[[4]]$dat, function(i) {
   })
 tree_names <- data.table(UniProtKB = tree_names, ord = 1:length(tree_names))
 
-annotations         <- data.table::fread("../data-raw/true_annotations")
+annotations         <- data.table::fread("data-raw/true_annotations")
 annotations[, UniProtKB := gsub(".+UniProtKB", "UniProtKB", primary_ext_acc)]
+
+# Temp pretty table
+pretty_ann <- annotations[, list(substring, primary_ext_acc, term, qualifier)]
+colnames(pretty_ann) <- c("Family", "Id", "GO term", "Qualifier")
+pretty_ann <- xtable::xtable(pretty_ann[1:10])
+xtable::print.xtable(pretty_ann, booktabs = TRUE)
+
+
 annotations <- subset(annotations, select = c(substring, UniProtKB))
 annotations <- unique(annotations)
 
@@ -56,11 +64,29 @@ View(cbind(
   nann = sapply(ps[[1]], function(i) length(i$obs.ids))
 ))
 
+
+op0 <- par(mai = rep(0, 4))
+graphics.off()
+pdf("featured-trees/example-trees-good1.pdf", width = 9, height = 6)
+plot(
+  x          = estimates[[4]],
+  which.tree = 11,
+  prop       = .2,
+  cex        = .3,
+  node.type.size = c(1.25,.75)/20,
+  ncores     = 4L,
+  loo        = FALSE,
+  show.tip.label = FALSE,
+  main       = sprintf("%s", tree_names[11])
+)
+dev.off()
+par(op0)
+
 op <- par(xpd = NA)
 
 # Example 1 --------------------------------------------------------------------
 graphics.off()
-svg("example-trees-good1-loo.svg", width = 6, height = 6)
+svg("featured-trees/example-trees-good1-loo.svg", width = 6, height = 6)
 plot(
   x          = estimates[[4]],
   which.tree = 11,
@@ -75,9 +101,11 @@ plot(
   )
 dev.off()
 
+
+
 # Example 2 --------------------------------------------------------------------
 graphics.off()
-svg("example-trees-bad1-loo.svg", width = 6, height = 6)
+svg("featured-trees/example-trees-bad1-loo.svg", width = 6, height = 6)
 plot(
   x          = estimates[[3]],
   which.tree = 51, #124,

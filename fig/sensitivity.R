@@ -10,7 +10,7 @@ estimates <- window(
 
 # We will iterate through different sets of parameters to investigate what is
 # the marginal effect of changing a parameter
-N    <- 10
+N    <- 5
 pseq <- seq(.0001, .9999, length.out = N)
 
 # Empty
@@ -42,7 +42,7 @@ for (v in names(ans)) {
     
     ans[[v]]$signif[[i]] <- sapply(ps., "[[", "pval")
     ans[[v]]$aucs[[i]]   <- sapply(ps., function(i) i$auc$auc)
-    ans[[v]]$pscore[[i]] <- sapply(ps., "[[", "obs")
+    ans[[v]]$pscore[[i]] <- 1 - sapply(ps., "[[", "obs")
     
     message("Variable ", v, " test ", i, " done.")
     
@@ -157,26 +157,27 @@ for (i in seq_along(ans)) {
   dat <- do.call(cbind, ans[[i]]$pscore)
   
   boxplot(
-    x    = dat,
-    main = expressions[[i]],
-    names = pseq_nam, 
-    border = gray(.4),
-    col    = colors.,
+    x       = dat,
+    main    = expressions[[i]],
+    names   = pseq_nam, 
+    border  = gray(.4),
+    col     = colors.,
     outline = FALSE,
-    boxwex = .7,
-    ylim = c(0,1)
+    boxwex  = .7,
+    ylim    = c(.05,.85)
   )
-  
-  lines(
-    apply(dat, 2, quantile, probs=.5), type = "b", lty = 1,
-    lwd = 2, col = "black")
+
+  abline(h = .5, lwd = 1, lty="dashed")  
+  # lines(
+  #   apply(dat, 2, quantile, probs=.5), type = "b", lty = 1,
+  #   lwd = 2, col = "black")
   
 }
 
 # Adding plot on the effect of missing data
 dat <- do.call(
   cbind,
-  lapply(ans_n_ann, function(i) sapply(i, function(j) j$obs) )
+  lapply(ans_n_ann, function(i) sapply(i, function(j) 1 - j$obs) )
 )
 
 # par(mar = par()$mar * c(1, 3, 1, 1))
@@ -188,17 +189,18 @@ boxplot(
   border = gray(.4),
   outline = FALSE,
   boxwex = .7, #,
-  ylim   = c(0,1)
+  ylim   = c(.05,.85)
   # ylab   = "AUC"
 )
 
-dat_quants <- apply(dat, 2, quantile, probs=.5)
+# dat_quants <- apply(dat, 2, quantile, probs=.5)
 
-abline(h = dat_quants[1], lty = 2, lwd = 2)
+# abline(h = dat_quants[1], lty = 2, lwd = 2)
+abline(h = .5, lwd = 1, lty="dashed")  
 # lines(
 #   , type = "b", lty = 1,
 #   lwd = 2, col = "black")
 
 par(op)
-title(ylab = "Prediction score", xlab = "Value of the parameter")
+title(ylab = "Mean Absolute Error (MAE)", xlab = "Value of the parameter")
 dev.off()

@@ -96,8 +96,8 @@ bias <- bias %>%
   as_tibble %>%
   filter(Missing < 1, PropOf0 > 0, PropOf0 < 1) %>%
   mutate(
-    pscore      = 1 - pscore/pscore_worse,
-    pscore_rand = 1 - pscore_rand/pscore_worse,
+    pscore      = pscore/pscore_worse,
+    pscore_rand = pscore_rand/pscore_worse,
   ) %>%
   select(
     index, Prior, size_tag, miss_tag, PropLeafs_tag,
@@ -110,15 +110,15 @@ bias <- bias %>%
   mutate(
     Type = if_else(
       Type == "pscore",
-      "P. Score Obs.",
+      "Mean Absolute Error",
       ifelse(Type == "auc", "AUC", "P. Score Rand."))
   )
 
-ggplot(bias, aes(Score, y = miss_tag)) +
+ggplot(subset(bias, Type != "P. Score Rand."), aes(Score, y = miss_tag)) +
   geom_density_ridges() +
   facet_grid(Prior ~ Type) +
   theme_minimal(base_family = "serif") +
-  xlab("Prediction Score") +
+  xlab("Value") +
   ylab("") +
   xlim(0, 1) +
   theme(axis.text.x = element_text(angle=45, hjust = 1)) +
