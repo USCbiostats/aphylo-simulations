@@ -34,7 +34,7 @@ setup <- tryCatch(clusterEvalQ(cl, {
   }
   
   # Common parameters
-  prior.  <- bprior(c(2,2,9,9,2,2,2,2,2), c(9,9,2,2,9,9,9,9,9))
+  prior.  <- bprior(c(2,2,9,9,2,2,2), c(9,9,2,2,9,9,9))
   warmup. <- 1000
   freq.   <- 10
   lb.     <- 1e-5
@@ -43,7 +43,7 @@ setup <- tryCatch(clusterEvalQ(cl, {
   mcmc. <- list(
     nchains      = 4L,
     multicore    = FALSE, 
-    burnin       = 2000L,
+    burnin       = 2500L,
     nsteps       = 5000L,
     conv_checker = fmcmc::convergence_gelman(1000),
     kernel       = fmcmc::kernel_adapt(lb = lb., ub = ub., warmup = warmup.),
@@ -62,7 +62,7 @@ set.seed(1362)
 # Case 1: (Almost) Fully annotated trees ---------------------------------------
 
 # Data preprocessing
-trees <- readRDS("../data/candidate_trees.rds")
+trees <- readRDS("data/candidate_trees.rds")
 trees <- do.call(c, trees)
 trees <- unlist(lapply(trees, function(d) {
   lapply(1:Nann(d), function(i) d[,i])

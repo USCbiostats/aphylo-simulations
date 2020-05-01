@@ -45,7 +45,7 @@ hist(
 
 # Adding text
 title(
-  main = c("Distribution of %\nDuplication events"),
+  main = c("Distribution of proportions\nof duplication events"),
   font.main = 1,
   cex.main=.9
   )

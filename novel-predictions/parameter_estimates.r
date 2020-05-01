@@ -32,10 +32,11 @@ shrink_towards_half <- function(x, margin=.01) {
 }
 
 # Common parameters
-prior.  <- bprior(c(2,2,9,9,2,2,2,2,2), c(9,9,2,2,9,9,9,9,9))
+# prior.  <- bprior(c(2,2,9,9,2,2,2,2,2), c(9,9,2,2,9,9,9,9,9))
+prior.  <- bprior(c(2,2,9,9,2,2,2), c(9,9,2,2,9,9,9))
 warmup. <- 500
 freq.   <- 10
-ub.     <- c(1 - 1e-5, 1 - 1e-5, 1-1e-5, 1-1e-5, 1-1e-5, 1-1e-5, 1 - 1e-5)
+ub.     <- c(1 - 1e-5)
 lb.     <- c(1e-5)
 
 mcmc. <- list(
@@ -52,76 +53,76 @@ set.seed(1362)
 
 # Case 1: Fully annotated trees ------------------------------------------------
 
-# Data preprocessing
-fully_annotated <- readRDS("../data/candidate_trees_inferred.rds")
-fully_annotated <- do.call(c, fully_annotated)
-fully_annotated <- unlist(lapply(fully_annotated, function(d) {
-  lapply(1:Nann(d), function(i) d[,i])
-  }), recursive = FALSE)
-fully_annotated <- do.call(c, fully_annotated)
-
-# Selecting using balance
-b <- balance_ann(fully_annotated)
-fully_annotated <- fully_annotated[(b >= quantile(b, .2))]
-
-# 1.A: No prior
-ans_mle_fully_annotated_no_prior <- aphylo_mle(
-  fully_annotated ~ psi + mu_d + mu_s + Pi
-)
-
-message("Fully annotated: MLE No prior done.")
-
-saveRDS(
-  ans_mle_fully_annotated_no_prior,
-  "mle_fully_annotated_no_prior.rds"
-  )
-
-set.seed(1231244)
-ans_mcmc_fully_annotated_no_prior <- aphylo_mcmc(
-  fully_annotated ~ psi + mu_d + mu_s + Pi,
-  params  = gen_starts(coef(ans_mle_fully_annotated_no_prior), mcmc.$nchains),
-  control = mcmc.
-)
-
-message("Fully annotated: MCMC No prior done.")
-
-saveRDS(
-  ans_mcmc_fully_annotated_no_prior,
-  "mcmc_fully_annotated_no_prior.rds"
-  )
-# 1.B: Prior
-ans_mle_fully_annotated_prior <- aphylo_mle(
-  fully_annotated ~ psi + mu_d + mu_s + Pi, priors = prior.
-)
-
-message("Fully annotated: MLE prior done.")
-
-saveRDS(
-  ans_mle_fully_annotated_prior,
-  "mle_fully_annotated_prior.rds"
-  )
-
-mcmc.$kernel <- fmcmc::kernel_ram(lb = lb., ub = ub., warmup = warmup., freq = freq.)
-
-set.seed(18231)
-ans_mcmc_fully_annotated_prior <- aphylo_mcmc(
-  fully_annotated ~ psi + mu_d + mu_s + Pi,
-  priors = prior.,
-  params  = gen_starts(coef(ans_mle_fully_annotated_prior), mcmc.$nchains),
-  control = mcmc.
-)
-
-message("Fully annotated: MCMC prior done.")
-
-saveRDS(
-  ans_mcmc_fully_annotated_prior,
-  "mcmc_fully_annotated_prior.rds"
-  )
+# # Data preprocessing
+# fully_annotated <- readRDS("../data/candidate_trees_inferred.rds")
+# fully_annotated <- do.call(c, fully_annotated)
+# fully_annotated <- unlist(lapply(fully_annotated, function(d) {
+#   lapply(1:Nann(d), function(i) d[,i])
+#   }), recursive = FALSE)
+# fully_annotated <- do.call(c, fully_annotated)
+# 
+# # Selecting using balance
+# b <- balance_ann(fully_annotated)
+# fully_annotated <- fully_annotated[(b >= quantile(b, .2))]
+# 
+# # 1.A: No prior
+# ans_mle_fully_annotated_no_prior <- aphylo_mle(
+#   fully_annotated ~ psi + mu_d + mu_s + Pi
+# )
+# 
+# message("Fully annotated: MLE No prior done.")
+# 
+# saveRDS(
+#   ans_mle_fully_annotated_no_prior,
+#   "mle_fully_annotated_no_prior.rds"
+#   )
+# 
+# set.seed(1231244)
+# ans_mcmc_fully_annotated_no_prior <- aphylo_mcmc(
+#   fully_annotated ~ psi + mu_d + mu_s + Pi,
+#   params  = gen_starts(coef(ans_mle_fully_annotated_no_prior), mcmc.$nchains),
+#   control = mcmc.
+# )
+# 
+# message("Fully annotated: MCMC No prior done.")
+# 
+# saveRDS(
+#   ans_mcmc_fully_annotated_no_prior,
+#   "mcmc_fully_annotated_no_prior.rds"
+#   )
+# # 1.B: Prior
+# ans_mle_fully_annotated_prior <- aphylo_mle(
+#   fully_annotated ~ psi + mu_d + mu_s + Pi, priors = prior.
+# )
+# 
+# message("Fully annotated: MLE prior done.")
+# 
+# saveRDS(
+#   ans_mle_fully_annotated_prior,
+#   "mle_fully_annotated_prior.rds"
+#   )
+# 
+# mcmc.$kernel <- fmcmc::kernel_ram(lb = lb., ub = ub., warmup = warmup., freq = freq.)
+# 
+# set.seed(18231)
+# ans_mcmc_fully_annotated_prior <- aphylo_mcmc(
+#   fully_annotated ~ psi + mu_d + mu_s + Pi,
+#   priors = prior.,
+#   params  = gen_starts(coef(ans_mle_fully_annotated_prior), mcmc.$nchains),
+#   control = mcmc.
+# )
+# 
+# message("Fully annotated: MCMC prior done.")
+# 
+# saveRDS(
+#   ans_mcmc_fully_annotated_prior,
+#   "mcmc_fully_annotated_prior.rds"
+#   )
 
 
 # Case 2: Partially annotated trees --------------------------------------------
 
-partially_annotated <- readRDS("../data/candidate_trees.rds")
+partially_annotated <- readRDS("data/candidate_trees.rds")
 partially_annotated <- do.call(c, partially_annotated)
 partially_annotated <- unlist(lapply(partially_annotated, function(d) {
   lapply(1:Nann(d), function(i) d[,i])
@@ -148,21 +149,6 @@ mcmc.$kernel <- fmcmc::kernel_adapt(lb = lb., ub = ub., warmup = warmup., freq =
 ans_mcmc_partially_annotated_no_prior <- aphylo_mcmc(
   partially_annotated ~ psi + mu_d + mu_s + Pi,
   params  = gen_starts(coef(ans_mle_partially_annotated_no_prior), mcmc.$nchains),
-  control = mcmc.
-)
-
-mcmc.$nsteps <- 50000
-
-set.seed(173812)
-mcmc.$kernel <- fmcmc::kernel_adapt(
-  lb = lb., ub = ub., warmup = warmup., freq = 1L
-  )
-mcmc.$conv_checker <- fmcmc::convergence_gelman(100)
-params0 <- gen_starts(coef(ans_mle_partially_annotated_no_prior), mcmc.$nchains)
-params0[,1:2] <- .05
-ans_mcmc_partially_annotated_no_prior <- aphylo_mcmc(
-  partially_annotated ~ psi(0,1) + mu_d + mu_s + Pi,
-  params  = params0,
   control = mcmc.
 )
 
