@@ -67,7 +67,7 @@ p <-
   # geom_vline(xintercept = 2/20 - 2/40, lty = 3, col="red") +
   xlim(-.5,.5) +
   xlab("Bias") +
-  ylab("Number of Leafs") +
+  ylab("Number of Leaves") +
   scale_fill_grey()
     
 

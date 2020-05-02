@@ -4,7 +4,7 @@ library(data.table)
 # Listing the mcmc files
 files <- list.files(
   pattern = "^(mcmc|mle).+\\.rds",
-  path    = "novel-predictions",
+  # path    = "novel-predictions",
   full.names = TRUE
 )
 estimates <- lapply(files, readRDS)
@@ -207,32 +207,36 @@ for (i in 1:ncol(S)) {
     else if (j == 1)
       tmp$conf.int <- tmp$conf.int - .5
     
+    if (i >= j)
+      next
+    
     message(i, " ", j)
     
     differences[i, j] <- sprintf(
       "%s[% 4.2f,% 4.2f]%s",
       if (prod(tmp$conf.int) > 0) {
-        if (tmp$conf.int < 0) "\\cellcolor{blue!25}"
+        if (tmp$conf.int[1] < 0) "\\cellcolor{blue!25}"
         else "\\cellcolor{red!25}"
       } else
         "",
       tmp$conf.int[1], tmp$conf.int[2],
-      with(tmp, {
-        ifelse(p.value < .01, "$^{***}$",
-               ifelse(p.value < .05, "$^{**}$",
-                      ifelse(p.value < .1, "$^{*}$", "")))
-      })
+      ""
+      # with(tmp, {
+      #   ifelse(p.value < .01, "$^{***}$",
+      #          ifelse(p.value < .05, "$^{**}$",
+      #                 ifelse(p.value < .1, "$^{*}$", "")))
+      # })
     )
     
   }
 }
 
-differences
+differences <- differences[-c(1,5), -1]
 
 # Latexing the table
 differences[] <- gsub("([[]|[,])(\\s)", "\\1\\\\hphantom{-}", differences[])
 differences <- cbind(
-  gsub("^.+[(](.+)[)]$", "\\\\hspace{1mm}\\1", rownames(differences), perl = TRUE),
+  gsub("^.+[(](.+)[)]$", "\\\\hspace{2mm}\\1", rownames(differences), perl = TRUE),
   differences
 )
 differences[,1] <- gsub("Uniform", "Unif.", differences[,1], perl = TRUE)

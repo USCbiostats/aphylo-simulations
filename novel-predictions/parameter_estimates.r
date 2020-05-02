@@ -142,7 +142,7 @@ saveRDS(
   )
 
 # In this case we don't need that many samples, this converges faster
-mcmc.$nsteps <- 50000
+mcmc.$nsteps <- 10000
 
 set.seed(173812)
 mcmc.$kernel <- fmcmc::kernel_adapt(lb = lb., ub = ub., warmup = warmup., freq = 1L)
