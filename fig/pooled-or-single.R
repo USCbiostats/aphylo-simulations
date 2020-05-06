@@ -133,7 +133,7 @@ legends <- c(
   )
 
 graphics.off()
-pdf("pooled-or-single/pooled-or-single.pdf", width = 7, height = 7)
+pdf("fig/pooled-or-single.pdf", width = 7, height = 7)
 op <- par(mar = par()$mar * c(1, 2, .5,1))
 boxplot(
   ps_obs[,5:1], horizontal = TRUE, las = 1,
