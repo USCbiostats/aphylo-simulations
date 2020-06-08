@@ -12,9 +12,11 @@ trees <- do.call(c, trees)
 go_terms <- sapply(trees, function(i) colnames(i$tip.annotation))
 
 # Did we got the data from QuickGO already?
-if (file.exists("novel-predictions/go_terms_info.rds")) {
+if (file.exists("novel-predictions-by-aspect/go_terms_info-experimental.rds")) {
   
-  go_terms_info <- readRDS("novel-predictions/go_terms_info.rds")
+  go_terms_info <- readRDS(
+    "novel-predictions-by-aspect/go_terms_info-experimental.rds"
+    )
   
 } else {
   
@@ -37,7 +39,7 @@ if (file.exists("novel-predictions/go_terms_info.rds")) {
     ,c("id", "name", "definition", "aspect")
     ]
   
-  saveRDS(go_terms_info, "novel-predictions/go_terms_info.rds")
+  saveRDS(go_terms_info, "novel-predictions-by-aspect/go_terms_info-experimental")
   
 }
 
@@ -58,6 +60,26 @@ bpriors <- bprior(shape1 = ALPHAS, shape2 = BETAS)
 # How evenly distributed are the types?
 prop_types <- sapply(trees, function(i) mean(with(i, c(tip.type, node.type)[reduced_pseq])))
 tapply(X = prop_types, INDEX = classes, mean)
+
+# How about the number of 0s and 1s
+zeros_and_ones <- sapply(trees, function(i) aphylo:::fast_table_using_labels(i$tip.annotation, c(0, 1, 9)))
+zeros_and_ones <- t(zeros_and_ones)
+zeros_and_ones <- tapply(
+  X = asplit(zeros_and_ones, 1),
+  INDEX = classes,
+  function(i) {
+    data.frame(
+      Avg    = colMeans(do.call(rbind, i)),
+      Counts = colSums(do.call(rbind, i))
+    )
+    }
+  )
+
+zeros_and_ones <- lapply(names(zeros_and_ones), function(i) {
+  cbind(Aspect = i, Annotation = c(0, 1, NA), zeros_and_ones[[i]])
+})
+zeros_and_ones <- do.call(rbind, zeros_and_ones)
+print(zeros_and_ones, digits = 3)
 
 
 # Fitting models per class of function -----------------------------------------
@@ -94,16 +116,27 @@ for (i in names(mcmc_per_aspect)) {
   message("Tree ",i, " done.")
 }
 
-saveRDS(mle_per_aspect, "novel-predictions/empirical_bayes_mle.rds")
-saveRDS(mcmc_per_aspect, "novel-predictions/empirical_bayes_mcmc.rds")
+saveRDS(
+  mle_per_aspect,
+  "novel-predictions-by-aspect/byaspect-experimental-trees_mle.rds"
+  )
+
+saveRDS(
+  mcmc_per_aspect,
+  "novel-predictions-by-aspect/byaspect-experimental-trees_mcmc.rds"
+  )
+
 
 # Biological Process the MCMC is doing way better, so it is a good idea to
 # rerun the MLE starting from the MCMC estimates
 mle_per_aspect$biological_process <- aphylo_mle(
   trees[classes == "biological_process"] ~ psi + mu_d + mu_s + Pi,
   params = coef(window(mcmc_per_aspect$biological_process, start = 30000)),
-  control = list(factr = 1e3) # Smaller factor means more steps, the default value
+  
+  # Smaller factor means more steps, the default value
   # is 1e7. This is multiplied by .Machine$double.eps
+  control = list(factr = 1e3) 
+  
 )
 
 # How are we doing on the prediction accuracy ? --------------------------------
@@ -115,7 +148,7 @@ maes_joint    <- 1.0 - sapply(pscores_joint, "[[", "obs") # Getting MAEs
 pscores_mle  <- lapply(mle_per_aspect, prediction_score)
 maes_mle     <- lapply(pscores_mle, function(i) 1.0 - sapply(i, "[[", "obs"))
 
-pscores_mcmc <- lapply(lapply(mcmc_per_aspect, window, start = 30000), prediction_score)
+pscores_mcmc <- lapply(lapply(mcmc_per_aspect, window, start = 30000L), prediction_score)
 maes_mcmc    <- lapply(pscores_mcmc, function(i) 1.0 - sapply(i, "[[", "obs"))
 
 # Comparing distributions
@@ -138,7 +171,10 @@ ggplot(data = data_4_boxplot, aes(y = MAE, x = Aspect)) +
   scale_fill_grey() +
   ylab("Mean Absolute Error (MAE)")
 
-ggsave("novel-predictions/empirical_bayes_mean_square_error.pdf", width = 8, height = 8)
+ggsave(
+  "novel-predictions-by-aspect/byaspect-experimental-trees_mae.pdf",
+  width = 8, height = 8
+  )
 
 # Comparing coefficients
 coef_mle_aspect  <- lapply(mle_per_aspect, coef)
@@ -182,7 +218,157 @@ ggplot(data = data_4_coefplot, aes(y = Value, x=Aspect:Method)) +
     subtitle = "Comparing Method (Joint or per aspect + MCMC vs MLE)"
     )
   
-ggsave("novel-predictions/empirical_bayes_coefs.pdf", width = 8, height = 8)
+ggsave("novel-predictions-by-aspect/byaspect-experimental-trees_coefs.pdf", width = 8, height = 8)
+
+# A table can be neat as well
+neat_table <- cbind(
+  Pooled = coef(window(joint_mcmc, start = 5000L)),
+  sapply(mcmc_per_aspect, function(m) coef(window(m, start = 25000L)))
+)
+
+neat_table[] <- sprintf("%.2f", neat_table[])
+
+# Accuracy scores: For this we take each set of predictions as a whole,
+# instead of by tree, I mean, unlisting all leafs
+
+# For the by aspect
+maes_mcmc <- lapply(pscores_mcmc, function(ps) {
+  dat. <- do.call(
+    rbind,
+    lapply(ps, function(p) cbind(p$predicted, p$expected))
+    )
+  
+  idx <- which(dat.[,2] != 9L)
+  
+  cbind(
+    AUC = auc(pred = dat.[,1], labels = dat.[,2])$auc,
+    MAE = mean(abs(dat.[idx,2] - dat.[idx,1]))
+  )
+})
+
+maes_mcmc <- t(do.call(rbind, maes_mcmc))
+colnames(maes_mcmc) <- names(pscores_mcmc)
+
+# for the joint case (need to match the names first)
+names_in_joint <- sapply(pscores_joint, function(i) colnames(i$predicted))
+
+classes_joint <- match(names_in_joint, go_terms_info$id)
+classes_joint <- go_terms_info$aspect[classes_joint]
+classes_joint[122] <- "molecular_function" # For some reason is NA
+
+maes_joint <- unique(classes_joint)
+names(maes_joint) <- maes_joint
+maes_joint <- lapply(maes_joint, function(c.) {
+  pscores_joint[which(classes_joint == c.)]
+})
+
+maes_joint <- lapply(maes_joint, function(ps) {
+  dat. <- do.call(
+    rbind,
+    lapply(ps, function(p) cbind(p$predicted, p$expected))
+  )
+  
+  idx <- which(dat.[,2] != 9L)
+  
+  cbind(
+    AUC = auc(pred = dat.[,1], labels = dat.[,2])$auc,
+    MAE = mean(abs(dat.[idx,2] - dat.[idx,1]))
+  )
+})
+
+maes_joint <- t(do.call(rbind, maes_joint))
+colnames(maes_joint) <- colnames(maes_mcmc)
+
+# Tree count
+neat_table <- rbind(
+  neat_table,
+  Trees = sprintf(
+    "%d",
+    c(Ntrees(joint_mcmc), sapply(mcmc_per_aspect, Ntrees))
+  )
+)
+
+
+
+
+# hierarchical model for molecular function ------------------------------------
+
+# Obtaining the alpha and beta
+ab <- mcmc_per_aspect$molecular_function$hist
+ab <- window(ab, start = 25000)
+ab <- do.call(rbind, as.list(ab))
+
+fitted_dist <- vector("list", ncol(ab))
+for (i in 1:ncol(ab)) {
+  fitted_dist[[i]] <- MASS::fitdistr(
+    x = ab[,i],
+    densfun = "beta", 
+    start   = list(shape1 = 10, shape2 = 10)
+    )
+  message(i, " done...")
+}
+
+alpha_beta <- t(sapply(fitted_dist, coef))
+dimnames(alpha_beta) <- list(
+  names(ALPHAS),
+  c("alpha", "beta")
+)
+
+# We want the hyper parameters to move more freely during the warmup stage
+n_mol_fun_trees <- sum(classes == "molecular_function")
+Sigma <- diag(c(rep(.001, 7 * n_mol_fun_trees), rep(0.5, 7 * 2)))
+
+
+k_ram <- fmcmc::kernel_ram(
+  lb     = .001,
+  warmup = 1e3,
+  eps    = .001,
+  # Sigma  = Sigma,
+  ub     = c(rep(.999, 7 * n_mol_fun_trees), rep(1000, 7 * 2)),
+  fixed  = c(rep(FALSE, 7 * n_mol_fun_trees), rep(TRUE, 7*2)) #,
+  # constr = constr
+)
+
+set.seed(123)
+# debug(k_ram$proposal)
+# debug(aphylo_hier)
+# debug()
+hierarchical_mol_fun <- aphylo_hier(
+  trees[classes == "molecular_function"] ~ psi + mu_d + mu_s + Pi,
+  classes      = 1:n_mol_fun_trees,
+  params       = coef(window(mcmc_per_aspect$molecular_function, start = 25000)),
+  nsteps       = 4e4,
+  kernel       = k_ram,
+  thin         = 1,
+  nchains      = 2,
+  use_optim    = FALSE,
+  # conv_checker = fmcmc::convergence_gelman(freq = 1e3, threshold = 1.001) #,
+  hyper_params = alpha_beta
+)
+
+saveRDS(hierarchical_mol_fun, "novel-predictions/empirical_bayes_molecular_function.rds")
+
+# Looking at prediction accuracy with this
+
+# Halfing
+individual_parameters <- window(hierarchical_mol_fun$hist, start = 2e4)
+1 - coda::rejectionRate(individual_parameters) # ~ 34% acceptance
+
+# we start by retrieving parameters
+n_mol_fun <- sum(classes == "molecular_function")
+individual_parameters <- parallel::mclapply(1:n_mol_fun, function(i) {
+  
+  # library(coda)
+  
+  # Forming the names
+  pnames <- sprintf("%s_class%03d", names(ALPHAS), i)
+  
+  structure(
+    summary(individual_parameters[,pnames])$statistics[,"Mean"],
+    names = names(ALPHAS)
+  )
+  
+}, mc.cores = 4L)
 
 
 stop("endofit")

@@ -2,12 +2,12 @@ library(aphylo)
 
 # Reading the results
 files <- list.files(
-  # path       = "",
+  path       = "novel-predictions/",
   pattern    = "^(mcmc|mle).+partially.+\\.rds",
   full.names = TRUE
   )
 fnames <- list.files(
-  # path       = "",
+  path       = "novel-predictions/",
   pattern    = "^(mcmc|mle).+partially.+\\.rds",
   full.names = FALSE
 )
