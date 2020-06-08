@@ -220,13 +220,7 @@ ggplot(data = data_4_coefplot, aes(y = Value, x=Aspect:Method)) +
   
 ggsave("novel-predictions-by-aspect/byaspect-experimental-trees_coefs.pdf", width = 8, height = 8)
 
-# A table can be neat as well
-neat_table <- cbind(
-  Pooled = coef(window(joint_mcmc, start = 5000L)),
-  sapply(mcmc_per_aspect, function(m) coef(window(m, start = 25000L)))
-)
-
-neat_table[] <- sprintf("%.2f", neat_table[])
+# Tabulating the results -------------------------------------------------------
 
 # Accuracy scores: For this we take each set of predictions as a whole,
 # instead of by tree, I mean, unlisting all leafs
@@ -248,6 +242,7 @@ maes_mcmc <- lapply(pscores_mcmc, function(ps) {
 
 maes_mcmc <- t(do.call(rbind, maes_mcmc))
 colnames(maes_mcmc) <- names(pscores_mcmc)
+maes_mcmc[] <- sprintf("%.2f", maes_mcmc)
 
 # for the joint case (need to match the names first)
 names_in_joint <- sapply(pscores_joint, function(i) colnames(i$predicted))
@@ -256,12 +251,14 @@ classes_joint <- match(names_in_joint, go_terms_info$id)
 classes_joint <- go_terms_info$aspect[classes_joint]
 classes_joint[122] <- "molecular_function" # For some reason is NA
 
+# Re-grouping by aspect
 maes_joint <- unique(classes_joint)
 names(maes_joint) <- maes_joint
 maes_joint <- lapply(maes_joint, function(c.) {
   pscores_joint[which(classes_joint == c.)]
 })
 
+# Computing AUCs and MAEs
 maes_joint <- lapply(maes_joint, function(ps) {
   dat. <- do.call(
     rbind,
@@ -278,6 +275,15 @@ maes_joint <- lapply(maes_joint, function(ps) {
 
 maes_joint <- t(do.call(rbind, maes_joint))
 colnames(maes_joint) <- colnames(maes_mcmc)
+maes_joint[] <- sprintf("%.2f", maes_joint)
+
+# A table can be neat as well
+neat_table <- cbind(
+  Pooled = coef(window(joint_mcmc, start = 5000L)),
+  sapply(mcmc_per_aspect, function(m) coef(window(m, start = 25000L)))
+)
+
+neat_table[] <- sprintf("%.2f", neat_table[])
 
 # Tree count
 neat_table <- rbind(
@@ -285,9 +291,12 @@ neat_table <- rbind(
   Trees = sprintf(
     "%d",
     c(Ntrees(joint_mcmc), sapply(mcmc_per_aspect, Ntrees))
-  )
+  ),
+  cbind(Pooled = "-", maes_mcmc),
+  cbind(Pooled = "-", maes_joint)
 )
 
+print(xtable::xtable(neat_table), booktabs = TRUE)
 
 
 
@@ -346,7 +355,10 @@ hierarchical_mol_fun <- aphylo_hier(
   hyper_params = alpha_beta
 )
 
-saveRDS(hierarchical_mol_fun, "novel-predictions/empirical_bayes_molecular_function.rds")
+saveRDS(
+  hierarchical_mol_fun,
+  "novel-predictions/empirical_bayes_molecular_function.rds"
+  )
 
 # Looking at prediction accuracy with this
 
@@ -368,8 +380,53 @@ individual_parameters <- parallel::mclapply(1:n_mol_fun, function(i) {
     names = names(ALPHAS)
   )
   
-}, mc.cores = 4L)
+})
 
+# Checking that colnames matches
+emp_bayes_cnames <- sapply(
+  hierarchical_mol_fun$dat,
+  function(i) colnames(i$tip.annotation)
+)
+
+aspect_cnames <- sapply(
+  mcmc_per_aspect$molecular_function$dat,
+  function(i) colnames(i$tip.annotation)
+)
+
+# These should match
+stopifnot(all(emp_bayes_cnames == aspect_cnames))
+
+predictions_emp_bayes <- vector("list", length(emp_bayes_cnames))
+for (i in seq_along(predictions_emp_bayes)) {
+  
+  # Figuring out the ids
+  ids <- which(
+    mcmc_per_aspect$molecular_function$dat[[i]]$tip.annotation != 9
+    )
+  
+  predictions_emp_bayes[[i]] <- predict(
+    mcmc_per_aspect$molecular_function,
+    which.tree = i,
+    ids        = list(ids),
+    params     = individual_parameters[[i]]
+  )[[1]][ids,]
+  
+  predictions_emp_bayes[[i]] <- cbind(
+    expected  = mcmc_per_aspect$molecular_function$dat[[i]]$tip.annotation[ids],
+    predicted = predictions_emp_bayes[[i]]
+  )
+    
+  message(i, " done.")
+}
+
+predictions_emp_bayes <- do.call(rbind, predictions_emp_bayes)
+
+emp_bayes_auc <- auc(
+  pred   = predictions_emp_bayes[,2],
+  labels = predictions_emp_bayes[,1]
+  )
+
+plot(emp_bayes_auc)
 
 stop("endofit")
 
