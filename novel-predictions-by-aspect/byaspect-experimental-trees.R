@@ -1,6 +1,18 @@
 library(aphylo)
 
+trees2 <- readRDS("data/candidate_trees2.rds")
 trees <- readRDS("data/candidate_trees.rds")
+
+# Should be equal
+all(unlist(Map(function(t1, t2) {
+  all(t1$tip.annotation == t2$tip.annotation)
+}, t1 = trees, t2 = trees2)))
+
+trees <- trees2
+
+tnames <- names(trees)
+tnames <- rep(tnames, sapply(trees, Nann))
+
 trees <- do.call(c, trees)
 trees <- unlist(lapply(trees, function(d) {
   lapply(1:Nann(d), function(i) d[,i])
@@ -49,6 +61,14 @@ classes[122] <- "molecular_function" # For some reason is NA
 
 if (anyNA(classes))
   stop("One or more GO-terms has no aspect. Need to download the data again!")
+
+
+# Subset of annotations for biological process
+write.csv(data.frame(
+  go=sapply(trees[classes == "biological_process"], function(i) colnames(i$tip.annotation)),
+  tree=tnames[classes == "biological_process"],
+  row.names = NULL
+), file = "novel-predictions-by-aspect/bio-process.csv", row.names = FALSE, quote = FALSE)
 
 
 # Estimating empirical bayes using map
@@ -357,18 +377,49 @@ hierarchical_mol_fun <- aphylo_hier(
 
 saveRDS(
   hierarchical_mol_fun,
-  "novel-predictions/empirical_bayes_molecular_function.rds"
+  "novel-predictions-by-aspect/empirical_bayes_molecular_function.rds"
   )
+
+k_ram2 <- fmcmc::kernel_ram(
+  lb     = .001,
+  warmup = 1e3,
+  eps    = .001,
+  # Sigma  = Sigma,
+  ub     = c(rep(.999, 7 * n_mol_fun_trees), rep(1000, 7 * 2)),
+  fixed  = c(rep(FALSE, 7 * n_mol_fun_trees), rep(TRUE, 7*2)) #,
+  # constr = constr
+)
+hierarchical_mol_fun <- readRDS(
+  "novel-predictions-by-aspect/empirical_bayes_molecular_function.rds"
+  )
+
+set.seed(71623)
+hierarchical_mol_fun <- aphylo_hier(
+  trees[classes == "molecular_function"] ~ psi + mu_d + mu_s + Pi,
+  classes      = 1:n_mol_fun_trees,
+  params       = coef(window(mcmc_per_aspect$molecular_function, start = 25000)),
+  params0      = colMeans(do.call("rbind", window(hierarchical_mol_fun$hist, start=30000))),
+  nsteps       = 4e4,
+  kernel       = k_ram2,
+  thin         = 1,
+  nchains      = 2,
+  use_optim    = FALSE,
+  conv_checker = fmcmc::convergence_gelman(freq = 500, threshold = 1.001),
+  hyper_params = alpha_beta
+)
 
 # Looking at prediction accuracy with this
 
 # Halfing
-individual_parameters <- window(hierarchical_mol_fun$hist, start = 2e4)
-1 - coda::rejectionRate(individual_parameters) # ~ 34% acceptance
+smaller_sample <- window(hierarchical_mol_fun$hist, start = 2e4)
+1 - coda::rejectionRate(smaller_sample) # ~ 34% acceptance
+
+# Freeing some space
+hierarchical_mol_fun$hist <- NULL
 
 # we start by retrieving parameters
 n_mol_fun <- sum(classes == "molecular_function")
-individual_parameters <- parallel::mclapply(1:n_mol_fun, function(i) {
+individual_parameters <- lapply(1:n_mol_fun, function(i) {
   
   # library(coda)
   
@@ -376,9 +427,19 @@ individual_parameters <- parallel::mclapply(1:n_mol_fun, function(i) {
   pnames <- sprintf("%s_class%03d", names(ALPHAS), i)
   
   structure(
-    summary(individual_parameters[,pnames])$statistics[,"Mean"],
+    summary(smaller_sample[,pnames])$statistics[,"Mean"],
     names = names(ALPHAS)
   )
+  
+})
+
+individual_gelman <- lapply(1:n_mol_fun, function(i) {
+  
+  # Forming the names
+  pnames <- sprintf("%s_class%03d", names(ALPHAS), i)
+  
+  coda::gelman.diag(smaller_sample[,pnames])
+  
   
 })
 

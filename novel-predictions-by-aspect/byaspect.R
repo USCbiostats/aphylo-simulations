@@ -1,6 +1,8 @@
 library(aphylo)
 
-trees <- readRDS("data/candidate_trees_inferred.rds")
+trees  <- readRDS("data/candidate_trees_inferred.rds")
+tnames <- names(trees)
+tnames <- rep(tnames, sapply(trees, Nann))
 trees <- do.call(c, trees)
 trees <- unlist(lapply(trees, function(d) {
   lapply(1:Nann(d), function(i) d[,i])
@@ -43,6 +45,13 @@ if (file.exists("novel-predictions-by-aspect/go_terms_info.rds")) {
 
 classes <- match(go_terms, go_terms_info$id)
 classes <- go_terms_info$aspect[classes]
+
+# Subset of annotations for biological process
+write.csv(data.frame(
+  go=sapply(trees[classes == "biological_process"], function(i) colnames(i$tip.annotation)),
+  tree=tnames[classes == "biological_process"],
+  row.names = NULL
+), file = "novel-predictions-by-aspect/bio-process.csv", row.names = FALSE, quote = FALSE)
 
 # Fitting the models -----------------------------------------------------------
 
