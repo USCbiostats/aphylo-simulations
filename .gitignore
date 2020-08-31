@@ -17,3 +17,9 @@ _rslurm*
 *.vrb
 *.log
 *.tex
+
+*.zip
+*.gz
+
+data-raw/
+
