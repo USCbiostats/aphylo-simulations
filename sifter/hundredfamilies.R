@@ -4,7 +4,7 @@ library(ape)
 library(aphylo)
 
 # Reading trees
-fn <- list.files("sifter/hundred/", pattern = "nhx", full.names = TRUE)
+fn <- list.files("sifter/sifter/100trees/", pattern = "nhx", full.names = TRUE)
 tn <- gsub("(.+/)([a-zA-Z0-9]+)\\.nhx", "\\2", fn, perl = TRUE)
 
 trees <- parallel::mclapply(fn, read.tree, mc.cores = 4L)
