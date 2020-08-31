@@ -2,7 +2,7 @@ library(ape)
 library(xml2)
 library(data.table)
 
-fn <- list.files("hundred", full.names = TRUE, pattern = "pli$")
+fn <- list.files("sifter/hundred", full.names = TRUE, pattern = "pli$")
 fn
 
 dat <- parallel::mclapply(fn, function(f) {
@@ -40,6 +40,6 @@ famids <- rep(famids, sapply(dat2, nrow))
 dat2 <- do.call(rbind, dat2)
 dat2$famid <- famids
 
-fwrite(dat2, "hundredfamilies_annotations.csv.gz")
+fwrite(dat2, "sifter/hundredfamilies_annotations.csv")
 
 
