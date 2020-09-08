@@ -50,7 +50,7 @@ read_nhx <- function(text) {
     if (length(n) > 0) {
       n <- gsub(pattern = "(^\\[|\\]$)", replacement = "", x = n)
       n <- matrix(n[-1], ncol = 2, byrow = TRUE)
-      structure(.Data = n[,1], names = n[,2])
+      structure(.Data = n[,2], names = n[,1])
     } else
      n
   }), error = function(e) e)
@@ -70,16 +70,19 @@ read_nhx <- function(text) {
   
 }
 
-x <- read_nhx("sifter/hundred/PF00610.nhx")
-
-microbenchmark::microbenchmark(
-  stringi = read_nhx("sifter/hundred/PF00610.nhx", wstringi = TRUE),
-  gsub    = read_nhx("sifter/hundred/PF00610.nhx", wstringi = FALSE)
-)
-
-stop()
-
 trees <- parallel::mclapply(fn, read_nhx, mc.cores = 4L)
+
+# How many diplication types
+ndupl <- lapply(trees, function(tree) {
+  sapply(tree$nhx, function(n) {
+    if ("D" %in% names(n) && n["D"] != "N")
+      TRUE
+    else
+      FALSE
+  })
+})
+
+sapply(ndupl, sum) # No tree here has duplication events
 
 info  <- parallel::mclapply(fn, function(i) {
   x <- readLines(i)

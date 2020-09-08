@@ -3,7 +3,7 @@ The file
 gene_association.goa_uniprot.80.txt which is formated in GAF 1.0
 (see http://www-legacy.geneontology.org/GO.format.gaf-1_0.shtml)
 
-Was downloaded from ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/old/UNIPROT/
+Was downloaded from ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/old/UNIPROT/ version 80
 
 The file hundredfamilies was downloaded from supplemental materials of the 2011
 paper published in Genome Research. 
