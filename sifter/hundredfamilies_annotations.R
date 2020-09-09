@@ -2,44 +2,19 @@ library(ape)
 library(xml2)
 library(data.table)
 
+# Functions to read sifter trees
+source("sifter/read_sifter.R")
+
+# Reading in the annotations
 fn <- list.files("sifter/hundred", full.names = TRUE, pattern = "pli$")
-fn
+dat <- parallel::mclapply(fn, read_pli, mc.cores = 4L)
 
-dat <- parallel::mclapply(fn, function(f) {
-  xml2::as_list(xml2::read_html(f))
-}, mc.cores = 4L)
+# Adding the corresponding family
+nams <- gsub(pattern = ".+[/]|[.]pli$", replacement = "", x = fn)
+dat <- cbind(
+  do.call(rbind, dat),
+  famid = rep(nams, sapply(dat, nrow))
+)
 
-
-dat2 <- parallel::mclapply(dat, function(d) {
-  res <- lapply(
-    d$html$body$family[-1],
-    function(b) {
-      name   <- b$proteinname
-      number <- b$proteinnumber
-      go     <- b$gonumber
-      moc    <- b$moc
-
-      nann <- max(1, length(go))
-
-      data.table(
-	name   = rep(unname(name), nann),
-	number = rep(unname(number), nann),
-	go     = if (is.null(go)) NA else unname(as.vector(go)),
-	moc    = if (is.null(moc)) NA else unname(as.vector(moc))
-      )
-      
-    }
-    )
-  do.call(rbind, res)
-})
-
-famids <- sapply(dat, function(d) d$html$body$family$familyid)
-famids <- unlist(famids, recursive = TRUE)
-famids <- rep(famids, sapply(dat2, nrow))
-
-dat2 <- do.call(rbind, dat2)
-dat2$famid <- famids
-
-fwrite(dat2, "sifter/hundredfamilies_annotations.csv")
-
-
+# Saving the data
+fwrite(dat, "sifter/hundredfamilies_annotations.csv")
