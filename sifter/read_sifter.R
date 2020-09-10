@@ -77,11 +77,13 @@ read_nhx <- function(fn) {
 read_pli <- function(fn) {
   
   ans <- xml2::as_list(xml2::read_html(fn))
-  res <- lapply(ans$html$body$family[-1], function(b) {
+  ans <- ans$html$body$family
+  ans <- ans[which(names(ans) == "protein")]
+  res <- lapply(ans, function(b) {
     name   <- b$proteinname
     number <- b$proteinnumber
-    go     <- b$gonumber
-    moc    <- b$moc
+    go     <- unlist(b$gonumber)
+    moc    <- unlist(b$moc)
     
     nann <- max(1, length(go))
     
@@ -94,7 +96,186 @@ read_pli <- function(fn) {
     
   })
   
-  do.call(rbind, res)
+  # go  <- lapply(ans, "[[", "go")
+  # moc <- lapply(ans, "[[", "moc")
+  # 
+  # go  <- strsplit(ans$go, split = ",")
+  # moc <- strsplit(ans$moc, split = ",")
+  # 
+  # ans <- data.table::rbindlist(res, fill = FALSE)
+  # 
+  # 
+  # 
+  # nele <- sapply(go, length)
+  # if (nele != sapply(moc, length))
+  #   stop("go and moc do not match lengths.", call. = FALSE)
+  
+  res <- data.table::rbindlist(res, fill = FALSE)
+  res[, go := strsplit(gsub("\\[|\\]|\\s", "", go), split = ",")]
+  res[, moc := strsplit(gsub("\\[|\\]|\\s", "", moc), split = ",")]
   
 }
 
+get_species <- function(i, offspring, species, ans = NULL) {
+  
+  # Leaf node?
+  if (length(offspring[[i]]) == 0) {
+    
+    ans <- c(ans, species[i])
+    
+  } else {
+    
+    for (j in offspring[[i]])
+      ans <- get_species(j, offspring, species, ans)
+    
+  }
+  
+  return(ans)
+  
+}
+
+imput_species <- function(tree, i = 1L, env = NULL) {
+  
+  if (is.null(env)) {
+    if (!inherits(tree, "phylo"))
+      stop("-tree- must be a phylo class object.", call. = FALSE)
+    
+    env <- list()
+    env$species     <- gsub(pattern = ".+[_]", replacement = "", tree$tip.label)
+    env$offspring   <- aphylo::list_offspring(tree)
+    env$checked     <- rep(FALSE, ape::Nnode(tree, internal.only = FALSE))
+    env$off_species <- vector("list", length(env$checked))
+    env$ntip        <- ape::Ntip(tree)
+    env$ntot        <- length(env$checked)
+    env$par         <- rbind(tree$edge, c(NA, env$ntip + 1))
+    env$par         <- env$par[order(env$par[,2]), 1]
+    
+    env <- list2env(env)
+  }
+  
+  if (env$checked[i]) {
+    return(env)
+  }
+  env$checked[i] <- TRUE
+  
+  # Going down
+  if (!length(env$offspring[[i]])) { # Is a leaf
+    env$off_species[[i]] <- env$species[i]
+  } else { # Has offspring
+    sapply(env$offspring[[i]], imput_species, tree = tree, env = env)
+    # Collecting species
+    env$off_species[[i]] <- unique(unlist(env$off_species[env$offspring[[i]]]))
+    
+  }
+  
+  # Root node
+  if (i == (env$ntip + 1))
+    return(as.list(env))
+  
+  if (is.na(env$par[i])) {
+    
+    warning("This is fishy")
+    
+  }
+  
+  imput_species(tree, env$par[i], env)
+  
+}
+
+imputate_duplications2 <- function(tree, species = NULL) {
+  
+  # Checking the input
+  if (!inherits(tree, "phylo"))
+    stop("This -tree- should be of class 'phylo'", call. = FALSE)
+  
+  # Getting the species
+  if (!length(tree$tip.label))
+    stop("This tree has no labels on its tips.", call. = FALSE)
+  
+  if (!length(species))
+    species <- gsub(pattern = ".+[_]", replacement = "", tree$tip.label)
+  
+  # Retrieving the species
+  DAT <- imput_species(tree)
+  
+  # Vector of answers
+  dpl   <- rep(FALSE, length(DAT$par))
+  
+  for (p in (DAT$ntip + 1):DAT$ntot) {
+    
+    # Getting the species in p
+    species_p <- DAT$off_species[DAT$offspring[[p]]]
+    
+    # Comparing lists
+    for (i in combn(1:length(species_p), 2, simplify = FALSE)) {
+      if (any(species_p[[i[1]]] %in% species_p[[i[2]]])) {
+        dpl[p] <- TRUE
+        break
+      }
+    }
+    
+  }
+  
+  return(dpl)
+}
+
+imputate_duplications <- function(tree, species = NULL) {
+  
+  # Checking the input
+  if (!inherits(tree, "phylo"))
+    stop("This -tree- should be of class 'phylo'", call. = FALSE)
+  
+  # Getting the species
+  if (!length(tree$tip.label))
+    stop("This tree has no labels on its tips.", call. = FALSE)
+  
+  if (!length(species))
+    species <- gsub(pattern = ".+[_]", replacement = "", tree$tip.label)
+  
+  # Listing offspring
+  off <- aphylo::list_offspring(tree)
+  size_ <- ape::Nnode(tree, internal.only = FALSE)
+  dpl <- logical(size_)
+  for (p in (ape::Ntip(tree) + 1):size_) {
+    
+    # Collecting the species
+    species_p <- vector("list", length(off[[p]]))
+    
+    for (i in seq_along(off[[p]])) {
+      species_p[[i]] <- get_species(
+        i         = off[[p]][i],
+        offspring = aphylo::list_offspring(tree),
+        species   = species
+      )
+    }
+    
+    # Comparing lists
+    for (i in combn(1:length(species_p), 2, simplify = FALSE)) {
+      if (any(species_p[[i[1]]] %in% species_p[[i[2]]])) {
+        dpl[p] <- TRUE   
+        break
+      }
+      
+    }
+  }
+  
+  return(dpl)
+  
+  
+}
+
+
+if (FALSE) {
+
+  ans <- imput_species(tree2)
+  imputate_duplications2(tree2)
+  
+  microbenchmark::microbenchmark(
+    dpl1 <- imputate_duplications(tree2),
+    dpl2 <- imputate_duplications2(tree2), times =10, unit = "relative"
+  )
+  
+  # How long to process a large tree
+  tree <- read_nhx("sifter/hundred/PF00098.nhx")
+  ans <- imputate_duplications2(tree$tree)
+}
