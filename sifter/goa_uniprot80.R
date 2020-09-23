@@ -14,6 +14,8 @@ goa <- goa[Evidence_Code %in% codes]
 # ID Synonim
 goa[, synm := gsub(".+[|]([a-zA-Z0-9_]+)$", "\\1", DB_Object_Synonym, perl = TRUE)]
 
+fwrite(goa, "sifter/goa_uniprot80_experimental.gz", compress = "gzip")
+
 # Reading hundred fams
 fams <- fread("sifter/hundredfamilies_annotations.csv")
 
