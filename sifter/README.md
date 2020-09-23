@@ -15,3 +15,6 @@ From the paper website https://doi.org/10.1371/journal.pcbi.0010045 (Original 20
 
 
  
+The nudix family tree was downloaded from PFAM version 20 (as mentioned in the paper)
+ftp://ftp.ebi.ac.uk/pub/databases/Pfam/releases/Pfam20.0/, and in particular, the
+file trees.tar.gz

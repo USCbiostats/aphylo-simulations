@@ -5,7 +5,7 @@
 #' - edge Edge annotations (length and other annotations)
 #' - nhx A list of annotations NHX
 read_nhx <- function(fn) {
-  text <- readLines(fn)
+  text <- paste(readLines(fn), collapse = "")
   
   # This pattern catches most of the information
   pattern <- "([(,)])([a-zA-Z0-9_]*)([:][0-9]+[.]?[0-9]*)(\\[&&NHX[a-zA-Z0-9_:=]+\\])?"
@@ -74,17 +74,25 @@ read_nhx <- function(fn) {
 #' - go: A list of the GO annotations
 #' - moc: Evidence code
 #' - fam: Name of the family
-read_pli <- function(fn) {
+read_pli <- function(fn, dropNAs = TRUE) {
+  
+  if (!("data.table" %in% loadedNamespaces()))
+    stop("This function needs data.table to be loaded.")
   
   ans <- xml2::as_list(xml2::read_html(fn))
   ans <- ans$html$body$family
   ans <- ans[which(names(ans) == "protein")]
   res <- lapply(ans, function(b) {
+    
+    # Extracting name
     name   <- b$proteinname
     number <- b$proteinnumber
+    
+    # And annotations
     go     <- unlist(b$gonumber)
     moc    <- unlist(b$moc)
     
+    # We are counting at least one annotation
     nann <- max(1, length(go))
     
     data.table::data.table(
@@ -95,24 +103,33 @@ read_pli <- function(fn) {
     )
     
   })
-  
-  # go  <- lapply(ans, "[[", "go")
-  # moc <- lapply(ans, "[[", "moc")
-  # 
-  # go  <- strsplit(ans$go, split = ",")
-  # moc <- strsplit(ans$moc, split = ",")
-  # 
-  # ans <- data.table::rbindlist(res, fill = FALSE)
-  # 
-  # 
-  # 
-  # nele <- sapply(go, length)
-  # if (nele != sapply(moc, length))
-  #   stop("go and moc do not match lengths.", call. = FALSE)
-  
+
   res <- data.table::rbindlist(res, fill = FALSE)
+  res[, c("name", "number") := list(unlist(name), unlist(number))]
   res[, go := strsplit(gsub("\\[|\\]|\\s", "", go), split = ",")]
   res[, moc := strsplit(gsub("\\[|\\]|\\s", "", moc), split = ",")]
+  
+  if (dropNAs)
+    res <- res[!is.na(go)]
+  
+  go  <- res[["go"]]
+  moc <- res[["moc"]]
+  
+  nrep <- sapply(go, length)
+  nrep[nrep == 0] <- 1L
+  
+  res[, c("go", "moc") := NULL]
+  res <- res[rep(1:.N, nrep)]
+  
+  cbind(
+    res,
+    data.table(
+      go = unlist(go, recursive = TRUE),
+      moc = unlist(moc, recursive = TRUE)
+      )
+    )
+  
+  
   
 }
 
