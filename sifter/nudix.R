@@ -6,12 +6,30 @@ model_aphylo <- window(model_aphylo, start=5000)
 
 source("sifter/read_sifter.R")
 
-read.tree("sifter/nudix/PF00293.tree")
+# read.tree("sifter/nudix/PF00293.tree")
 
 tree <- read_nhx("sifter/nudix/PF00293.tree")
 
 # Finding the corresponding annotations
-ann  <- read_pli("sifter/sulfotransferase/proteinfamily_pf00685.pli")
+ann  <- fread("sifter/nudix/nudix-ann.tsv")
+go <- strsplit(ann$goterms, split=",")
+ann <- ann[rep(1:.N, sapply(go, length))]
+ann$terms <- unlist(go)
+ann[, goterms := NULL]
+
+# Looking for duplicated labs
+labs <- data.table(lab = tree$tree$tip.label, name = gsub("[/].+", "", tree$tree$tip.label))
+labs[, n := .N, by = name]
+setorder(labs, n)
+
+labs[, table(n)] # 10/3693 are duplicated (so we have 5 records)
+labs <- merge(
+  x = labs,
+  y = goa[, .(synm, GO_ID, Aspect, Qualifier)],
+  by.x = "name", by.y = "synm")
+
+# How many have experimental annotations?
+unique(labs[, .(Aspect, name)])[, table(Aspect)]
 
 dupl <- imputate_duplications(
   tree$tree,

@@ -8,7 +8,7 @@ source("sifter/read_sifter.R")
 
 tree <- read_nhx("sifter/sulfotransferase/reconciled-pf00685.nhx")
 ann  <- read_pli("sifter/sulfotransferase/proteinfamily_pf00685.pli")
-
+ann <- ann[moc == c("IDA")]
 dupl <- imputate_duplications(tree$tree)
 
 ann[, value:=1L]
