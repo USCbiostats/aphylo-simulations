@@ -9,9 +9,14 @@ source("sifter/read_sifter.R")
 read.tree("sifter/nudix/PF00293.tree")
 
 tree <- read_nhx("sifter/nudix/PF00293.tree")
+
+# Finding the corresponding annotations
 ann  <- read_pli("sifter/sulfotransferase/proteinfamily_pf00685.pli")
 
-dupl <- imputate_duplications(tree$tree)
+dupl <- imputate_duplications(
+  tree$tree,
+  gsub(".+[_]|[/].+", "", tree$tree$tip.label)
+  )
 
 ann[, value:=1L]
 ann[, c("moc", "number") := NULL]
