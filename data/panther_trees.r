@@ -2,7 +2,7 @@
 # library(tidyr)
 # library(magrittr)
 library(aphylo)
-library(sluRm)
+library(slurmR)
 
 source("global-paths.r")
 

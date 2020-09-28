@@ -1,3 +1,22 @@
+# library(data.table)
+# 
+# true_annotations <- fread("data-raw/true_annotations")
+# true_annotations[, qualifier := fifelse(qualifier == "", NA_character_, qualifier)]
+# true_annotations[, present := fifelse(
+#   is.na(qualifier), TRUE, fifelse(qualifier == "NOT", FALSE, TRUE))]
+# 
+# true_annotations[, table(qualifier, present, useNA = "always")]
+# 
+# counts <- true_annotations[
+#   , .(yes = sum(present), no = sum(!present)),
+#   by = .(substring, term)
+#   ]
+# 
+# counts <- counts[yes > 0 & no > 0]
+# counts <- counts[order(no, decreasing = TRUE)]
+# 
+# fwrte(counts, "data/candidate_functions.csv")
+
 library(dplyr)
 library(magrittr)
 
