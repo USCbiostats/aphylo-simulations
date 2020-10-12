@@ -87,10 +87,10 @@ for (i in seq_along(atrees)) {
 }
 
 names(atrees) <- candidate_trees
-saveRDS(atrees, file = "data/candidate_trees2.rds")
+saveRDS(atrees, file = "data/candidate_trees.rds")
 
 # Proportion of annotations, zeros, and ones -----------------------------------
-atrees <- readRDS("data/candidate_trees2.rds")
+atrees <- readRDS("data/candidate_trees.rds")
 
 candidate_trees <- lapply(names(atrees), function(t.) {
   
@@ -124,7 +124,7 @@ for (i in seq_len(nrow(candidate_trees))) {
   
 }
 
-saveRDS(filtered_trees, file = "data/candidate_trees2.rds")
+saveRDS(filtered_trees, file = "data/candidate_trees.rds")
 
 
 # Total annotaions
