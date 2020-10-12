@@ -1,14 +1,6 @@
 library(aphylo)
 
-trees2 <- readRDS("data/candidate_trees2.rds")
 trees <- readRDS("data/candidate_trees.rds")
-
-# Should be equal
-all(unlist(Map(function(t1, t2) {
-  all(t1$tip.annotation == t2$tip.annotation)
-}, t1 = trees, t2 = trees2)))
-
-trees <- trees2
 
 tnames <- names(trees)
 tnames <- rep(tnames, sapply(trees, Nann))
