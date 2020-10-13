@@ -90,7 +90,7 @@ ans[order(n),] # Selecting one tree with small number of proteins annotated
 
 # Extracting the genes (with full names) associated the tree
 # PTHR10082
-idx <- dat[, which(tree == "PTHR10082")]
+idx <- dat[, which(tree == "PTHR11926")]
 
 sample_trees <- pfam_ids[idx]
 
@@ -122,11 +122,47 @@ pfamscan <- function(
   path         = "Tools/services/rest/pfamscan",
   maxchecktime = 60,
   wait         = 1,
-  errorfun     = message
+  errorfun     = message,
+  max_post_size = 2000L
   ) {
+  
+  # Checking lengths
+  if (length(fasta_str) > 1) {
+    
+    # Learning the size of the sequences
+    sizes <- cumsum(nchar(fasta_str)) %/% (max_post_size + 1)
+    
+    # Making the splits
+    sizes <- split(fasta_str, sizes)
+    sizes <- sapply(sizes, paste0, collapse = "\n")
+    
+    return(
+      lapply(
+        X   = sizes,
+        FUN = pfamscan,
+        email = email,
+        ...,
+        path  = path,
+        maxchecktime = maxchecktime,
+        wait = wait,
+        errorfun = errorfun,
+        max_post_size = max_post_size
+        ))
+    
+  }
 
   # Posting the data to the EBI server
-  message(paste(rep("-", 80), collapse = ""),"\nPosting the query...", appendLF = TRUE)
+  sequences <- gsub("\\n[[:upper:]\\n*]+", "", fasta_str)
+  sequences <- strsplit(sequences, "\\n?>")[[1L]][-1]
+  message(
+    paste(rep("-", 80), collapse = ""),
+    sprintf(
+      "\nPosting the query for %i sequences:\n %s...",
+      length(sequences),
+      paste0(sequences, collapse = ", ")
+      ),
+    appendLF = TRUE
+    )
   query1 <- httr::POST(
     url    = api_url,
     path   = c("Tools/services/rest/pfamscan", "run"),
@@ -225,19 +261,25 @@ pfamscan <- function(
 
 }
 
-pfamscan_results <- vector("list", length(fasta))
-for (i in 1:length(pfamscan_results)) {
-  pfamscan_results[[i]] <- pfamscan(
-    fasta_str = fasta[[i]],
-    email     = "vegayon@usc.edu"
-    )
-}
+# pfamscan_results <- vector("list", length(fasta))
+# for (i in 1:length(pfamscan_results)) {
+#   pfamscan_results[[i]] <- pfamscan(
+#     fasta_str = fasta[[i]],
+#     email     = "vegayon@usc.edu"
+#     )
+# }
+# 
+# pfamscan_results_cleaned <- unlist(pfamscan_results)
+# pfamscan_results_cleaned <- unlist(strsplit(pfamscan_results_cleaned, split="\n"))
+# pfamscan_results_cleaned <- pfamscan_results_cleaned[
+#   grepl("^[^#]", pfamscan_results_cleaned)
+#   ]
 
-pfamscan_results_cleaned <- unlist(pfamscan_results)
-pfamscan_results_cleaned <- unlist(strsplit(pfamscan_results_cleaned, split="\n"))
-pfamscan_results_cleaned <- pfamscan_results_cleaned[
-  grepl("^[^#]", pfamscan_results_cleaned)
-  ]
+pfamscan_results2 <- pfamscan(
+  fasta_str     = fasta,
+  email         = "vegayon@usc.edu",
+  max_post_size = 50000
+)
 
 saveRDS(pfamscan_results, "data/sifter_data_pfamscan.rds")
 # 
