@@ -1,5 +1,6 @@
 library(aphylo)
 library(data.table)
+library(pfamscanr)
 
 # Loading the trees for the experiment
 candidate_trees <- readRDS("data/candidate_trees.rds")
@@ -81,6 +82,10 @@ get_info_uniprot <- function(uniprotkb, skip_failed = TRUE, db = "pfam") {
 pfam_ids <- unique(dat[,as.character(UniProtKB)])
 pfam_ids <- get_info_uniprot(pfam_ids)
 
+# The following IDS were not found in PFAM
+# names(pfam_ids)[c(259, 642)]
+# [1] "F1QJU1"     "A0A0R4ITP9"
+
 save.image("data/sifter_data.rda")
 
 # Setting up the data to be used with SIFTER -----------------------------------
@@ -90,35 +95,49 @@ ans[order(n),] # Selecting one tree with small number of proteins annotated
 
 # Extracting the genes (with full names) associated the tree
 # PTHR10082
-idx <- dat[, which(tree == "PTHR11926")]
+idx <- dat[, which(tree == "PTHR24416")]
 
-sample_trees <- pfam_ids[idx]
+sample_trees <- pfam_ids # [idx]
 
 cat(names(sample_trees), sep = "\n")
 
 # Creating the fasta sequences for querying pfamscan ---------------------------
+counter <- 0L
 fasta <- lapply(sample_trees, function(i) {
-  d <- strsplit(
+  
+  counter <<- counter + 1L
+  
+  d <- tryCatch(strsplit(
     i$pfam$entry$sequence[[1]],
     split = "(?<=.{50})",
-    perl = TRUE)[[1]]
+    perl = TRUE)[[1]],
+    error = function(e) e
+  )
+  
+  if (inherits(d, "error")) {
+    message("The protein ", counter, " has no sequence.")
+    return(NA_character_)
+  }
+  
   paste0(
     sprintf(">%s\n", attr(i$pfam$entry, "accession")),
     paste(d, collapse="\n"),
     "*")
 })
 
-# Loading functions to download pfamscan
-source("pfamscan.r", echo=FALSE)
+# Removing NAs
+fasta <- fasta[!is.na(fasta)]
 
 pfamscan_results <- pfamscan(
   fasta_str     = fasta,
   email         = "vegayon@usc.edu",
-  max_post_size = 25000,
-  wait          = 120
+  maxchecktime  = 180
 )
 
-pfamscan_process(pfamscan_results[[1]])
+# Checking which ones were not present
+which(!names(fasta) %in% pfamscan_results$seq$name)
+# 22 out of 1337 in total
+# [1]   53  566  605  606  608  924  925  926  927  928 1066 1067 1070 1071 1072 1073 1074 1075 1076 1077 1078 1079
 
 saveRDS(pfamscan_results, "data/sifter_data_pfamscan.rds")
 # 
