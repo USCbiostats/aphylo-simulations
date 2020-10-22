@@ -184,7 +184,7 @@ dat <- do.call(
 
 boxplot(
   dat,
-  main   = "Accuracy vs Missing data",
+  main   = "MAE vs Missing data",
   names  = lose_seq, 
   border = gray(.4),
   outline = FALSE,

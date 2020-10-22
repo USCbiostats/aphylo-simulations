@@ -92,10 +92,17 @@ plot(pred_auc)
 
 threshold <- .5
 
-# Accuracy
+# Directly from the paper:
+# To compute accuracy for a given data set, we counted the number
+# of proteins for which the top-ranked prediction exactly matched
+# the experimental annotation, and divided by the total number of
+# proteins. In the case of multiple experimental annotations or top-
+#   ranked predictions, we counted the protein as having an accurate
+# prediction when the intersection of the two sets was not empty. 
 tpr <- sapply(ids, function(i) {
   obs <- which(ans$tip.annotation[i,] == 1)
   pre <- which(pred[i,] > threshold)
   length(intersect(obs, pre) ) > 0
 }) 
+
 

@@ -54,11 +54,12 @@ varnames <- c(
 
 rownames(tab) <- varnames[rownames(tab)]
 
-aucs <- sapply(ps, function(ps.) {
+aucs <- lapply(ps, function(ps.) {
   a <- do.call(rbind, lapply(ps., function(p) cbind(p$expected, p$predicted)))
-  auc(a[,2],labels = a[,1])$auc
+  auc(a[,2],labels = a[,1]) #$auc
 })
 
+# AUC if at least 10 no annotated
 aucs10 <- sapply(ps, function(ps.) {
   a <- lapply(ps., function(p) cbind(p$expected, p$predicted))
   a <- lapply(a, function(a.) a.[!is.na(a.[,2]),])
@@ -69,6 +70,33 @@ aucs10 <- sapply(ps, function(ps.) {
   auc(a[,2],labels = a[,1])$auc
 })
 
+# AUC plot
+cols <- adjustcolor(c(
+   "black",
+   "steelblue",
+  "tomato",
+   "darkgreen"
+  ), alpha = .5)
+names(cols) <- c("MCMC (Unif Prior)", "MCMC (Beta Prior)", "MLE", "MAP (Beta Prior)")
+graphics.off()
+pdf("novel-predictions/summary_table_roc.pdf", width = 6, height = 6)
+plot(aucs[[1]], pch = 1, lwd = 2, type = "p")
+with(aucs[[2]], lines(x = fpr, y = tpr, pch=2, lwd=2, col=cols[2], type = "p"))
+with(aucs[[3]], lines(x = fpr, y = tpr, pch=3, lwd=2, col=cols[3], type = "p"))
+with(aucs[[4]], lines(x = fpr, y = tpr, pch=4, lwd=2, col=cols[4], type = "p"))
+legend(
+  "bottomright",
+  legend = names(cols),
+  col    = cols,
+  lty    = c(1,2,5,4), lwd=2,
+  bty    = "n",
+  title   = "Estimation Method"
+  )
+dev.off()
+
+aucs <- sapply(aucs, "[[", "auc")
+
+# MAEs ------------------------------------------------------
 maes <- sapply(ps, function(ps.) {
   a <- do.call(rbind, lapply(ps., function(p) cbind(p$expected, p$predicted)))
   a <- a[!is.na(a[,2]),]
