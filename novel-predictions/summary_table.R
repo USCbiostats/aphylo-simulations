@@ -76,19 +76,21 @@ cols <- adjustcolor(c(
    "steelblue",
   "tomato",
    "darkgreen"
-  ), alpha = .5)
+  ), alpha = .8)
+
 names(cols) <- c("MCMC (Unif Prior)", "MCMC (Beta Prior)", "MLE", "MAP (Beta Prior)")
 graphics.off()
 pdf("novel-predictions/summary_table_roc.pdf", width = 6, height = 6)
-plot(aucs[[1]], pch = 1, lwd = 2, type = "p")
-with(aucs[[2]], lines(x = fpr, y = tpr, pch=2, lwd=2, col=cols[2], type = "p"))
-with(aucs[[3]], lines(x = fpr, y = tpr, pch=3, lwd=2, col=cols[3], type = "p"))
-with(aucs[[4]], lines(x = fpr, y = tpr, pch=4, lwd=2, col=cols[4], type = "p"))
+plot(aucs[[1]], pch = 1, lwd = 1.5, type = "p")
+with(aucs[[2]], lines(x = fpr, y = tpr, pch=2, lwd=1.5, col=cols[2], type = "p"))
+with(aucs[[3]], lines(x = fpr, y = tpr, pch=3, lwd=1.5, col=cols[3], type = "p"))
+with(aucs[[4]], lines(x = fpr, y = tpr, pch=4, lwd=1.5, col=cols[4], type = "p"))
 legend(
   "bottomright",
   legend = names(cols),
   col    = cols,
-  lty    = c(1,2,5,4), lwd=2,
+  pch    = 1:4, lwd=1.5,
+  # box.lty = "p",
   bty    = "n",
   title   = "Estimation Method"
   )
