@@ -17,7 +17,7 @@ for (i in seq_along(trees))
 
 # Reading the true annotations. We wil merge these with the 
 # trees that we will be using.
-annotations         <- data.table::fread("data-raw/true_annotations")
+annotations         <- data.table::fread("data-raw/true_annotations.gz")
 candidate_functions <- data.table::fread("data/candidate_functions.csv")
 candidate_trees     <- unique(candidate_functions$substring)
 
@@ -152,5 +152,6 @@ candidate_trees %>%
 
 ggsave(filename = "data/candidate_trees.pdf", width = 7,
        height = 6)
+
 
 
