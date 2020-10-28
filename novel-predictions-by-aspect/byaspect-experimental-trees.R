@@ -15,41 +15,11 @@ trees <- do.call(c, trees)
 # (biological process, cellular component, molecular function)
 go_terms <- sapply(trees, function(i) colnames(i$tip.annotation))
 
-# Did we got the data from QuickGO already?
-if (file.exists("novel-predictions-by-aspect/go_terms_info-experimental.rds")) {
-  
-  go_terms_info <- readRDS(
-    "novel-predictions-by-aspect/go_terms_info-experimental.rds"
-    )
-  
-} else {
-  
-  quick_go_call <- function(geneProductId) {
-    
-    # API call baseline
-    baseline_url  <- "https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms/"
-    geneProductId <- paste(unique(geneProductId), collapse = "%2C")
-    
-    query <- sprintf("-X GET --header 'Accept:application/json' '%s%s'", baseline_url, geneProductId)
-    message("Submitting query:\n", query)
-    
-    system2("curl", query, stdout = TRUE)
-    
-  }
-  
-  go_terms_info <- quick_go_call(unique(go_terms))
-  go_terms_info <- jsonlite::fromJSON(go_terms_info)
-  go_terms_info <- go_terms_info$results[
-    ,c("id", "name", "definition", "aspect")
-    ]
-  
-  saveRDS(go_terms_info, "novel-predictions-by-aspect/go_terms_info-experimental")
-  
-}
+go_terms_info <- data.table::fread("data/go_terms_info.csv")
 
 classes <- match(go_terms, go_terms_info$id)
 classes <- go_terms_info$aspect[classes]
-classes[122] <- "molecular_function" # For some reason is NA
+classes[122] <- "molecular_function" 
 
 if (anyNA(classes))
   stop("One or more GO-terms has no aspect. Need to download the data again!")

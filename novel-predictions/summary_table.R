@@ -24,7 +24,7 @@ names(estimates) <- fnames
 for (i in which(grepl("^MCMC", fnames))) {
   estimates[[i]] <- window(
     x     = estimates[[i]],
-    start = floor(coda::niter(estimates[[i]]$hist) / 2)
+    start = floor((end(estimates[[i]]$hist) - start(estimates[[i]]$hist))/2)# floor(coda::niter(estimates[[i]]$hist) / 2)
   )
 }
 
