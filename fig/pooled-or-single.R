@@ -4,11 +4,11 @@ library(data.table)
 # Listing the mcmc files
 files <- list.files(
   pattern = "^(mcmc|mle).+\\.rds",
-  # path    = "novel-predictions",
+  # path    = "parameter-estimates",
   full.names = TRUE
 )
 estimates <- lapply(files, readRDS)
-estimates_disjoint <- readRDS("novel-predictions/estimates_disjoint.rds")
+estimates_disjoint <- readRDS("parameter-estimates/estimates_disjoint.rds")
 
 
 # Getting the tree names -------------------------------------------------------

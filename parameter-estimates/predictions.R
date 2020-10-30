@@ -2,7 +2,7 @@
 library(aphylo)
 library(data.table)
 
-estimates <- readRDS("novel-predictions/mcmc_partially_annotated_no_prior.rds")
+estimates <- readRDS("parameter-estimates/mcmc_partially_annotated_no_prior.rds")
 
 # Applying burnin
 estimates <- window(
@@ -114,4 +114,4 @@ predlll <- merge(
 
 setnames(predlll, "substring", "panther")
 
-data.table::fwrite(predlll, file = "novel-predictions/predictions.csv.gz", compress = "gzip")
+data.table::fwrite(predlll, file = "parameter-estimates/predictions.csv.gz", compress = "gzip")

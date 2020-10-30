@@ -1,6 +1,6 @@
 library(aphylo)
 
-estimates <- readRDS("novel-predictions/mcmc_partially_annotated_no_prior.rds")
+estimates <- readRDS("parameter-estimates/mcmc_partially_annotated_no_prior.rds")
 
 # Extracting the proportions ---------------------------------------------------
 types <- sapply(estimates$dat, function(d) {

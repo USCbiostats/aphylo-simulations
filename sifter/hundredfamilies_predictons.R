@@ -1,7 +1,7 @@
 library(aphylo)
 
 # Loading parameter estimates from the previous model
-model_aphylo <- readRDS("novel-predictions/mcmc_partially_annotated_no_prior.rds")
+model_aphylo <- readRDS("parameter-estimates/mcmc_partially_annotated_no_prior.rds")
 model_aphylo <- window(model_aphylo, start=5000)
 plot(model_aphylo$hist)
 

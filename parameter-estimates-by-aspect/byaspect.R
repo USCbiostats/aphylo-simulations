@@ -14,9 +14,9 @@ trees <- do.call(c, trees)
 go_terms <- sapply(trees, function(i) colnames(i$tip.annotation))
 
 # Did we got the data from QuickGO already?
-if (file.exists("novel-predictions-by-aspect/go_terms_info.rds")) {
+if (file.exists("parameter-estimates-by-aspect/go_terms_info.rds")) {
   
-  go_terms_info <- readRDS("novel-predictions-by-aspect/go_terms_info.rds")
+  go_terms_info <- readRDS("parameter-estimates-by-aspect/go_terms_info.rds")
   
 } else {
   
@@ -39,7 +39,7 @@ if (file.exists("novel-predictions-by-aspect/go_terms_info.rds")) {
     ,c("id", "name", "definition", "aspect")
     ]
   
-  saveRDS(go_terms_info, "novel-predictions-by-aspect/go_terms_info.rds")
+  saveRDS(go_terms_info, "parameter-estimates-by-aspect/go_terms_info.rds")
   
 }
 
@@ -51,7 +51,7 @@ write.csv(data.frame(
   go=sapply(trees[classes == "biological_process"], function(i) colnames(i$tip.annotation)),
   tree=tnames[classes == "biological_process"],
   row.names = NULL
-), file = "novel-predictions-by-aspect/bio-process.csv", row.names = FALSE, quote = FALSE)
+), file = "parameter-estimates-by-aspect/bio-process.csv", row.names = FALSE, quote = FALSE)
 
 # Fitting the models -----------------------------------------------------------
 
@@ -88,8 +88,8 @@ for (i in names(mle_estimates)) {
   
 }
 
-saveRDS(mle_estimates, "novel-predictions-by-aspect/byaspect_mle.rds")
-saveRDS(mcmc_estimates, "novel-predictions-by-aspect/byaspect_mcmc.rds")
+saveRDS(mle_estimates, "parameter-estimates-by-aspect/byaspect_mle.rds")
+saveRDS(mcmc_estimates, "parameter-estimates-by-aspect/byaspect_mcmc.rds")
 
 mle_estimates_ram <- vector("list", 3L)
 names(mle_estimates_ram) <- unique(classes)
@@ -124,6 +124,6 @@ for (i in names(mle_estimates_ram)) {
   
 }
 
-saveRDS(mle_estimates_ram, "novel-predictions-by-aspect/byaspect_mle_ram.rds")
-saveRDS(mcmc_estimates_ram, "novel-predictions-by-aspect/byaspect_mcmc_ram.rds")
+saveRDS(mle_estimates_ram, "parameter-estimates-by-aspect/byaspect_mle_ram.rds")
+saveRDS(mcmc_estimates_ram, "parameter-estimates-by-aspect/byaspect_mcmc_ram.rds")
 

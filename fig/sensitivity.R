@@ -1,6 +1,6 @@
 library(aphylo)
 
-estimates <- readRDS("novel-predictions/mcmc_partially_annotated_no_prior.rds")
+estimates <- readRDS("parameter-estimates/mcmc_partially_annotated_no_prior.rds")
 
 # Applying burnin
 estimates <- window(
@@ -21,7 +21,6 @@ pscore <- signif
 # General output
 ans <- vector("list", length(coef(estimates)))
 names(ans) <- names(coef(estimates))
-
 
 for (v in names(ans)) {
 
@@ -145,16 +144,32 @@ expressions <- list(
   expression(pi)
 )
 
+ylims <- c(.05,.85)
+abcut <- .5
+
 graphics.off()
 pdf("fig/sensitivity.pdf", width = 6, height = 8)
 op <- par(mfrow = c(4, 2), mar = c(2.5,2,2.5,1), oma = c(4,2,0,0))
+alldat <- NULL
 for (i in seq_along(ans)) {
   # Coloring the closest one
   closest <- which.min(abs(coef(estimates)[i] - pseq))
   colors. <- rep("gray", length(pseq))
   colors.[closest] <- "white"
   
-  dat <- do.call(cbind, ans[[i]]$pscore)
+  dat <- do.call(cbind, ans[[i]]$pscore) # - (1 - sapply(ps_baseline, "[[", "obs"))
+  
+  # Rep sequence
+  rep_seq <- rep(nrow(dat), length(pseq_nam))
+  alldat <- rbind(
+    alldat,
+    data.frame(
+      MAE    = as.vector(dat),
+      par    = names(coef(estimates))[i],#gsub("^expression\\(|\\)$", "", deparse(expressions[[i]])),
+      value  = rep(pseq_nam, rep_seq),
+      colors = rep(colors., rep_seq)
+    )
+  )
   
   boxplot(
     x       = dat,
@@ -164,13 +179,10 @@ for (i in seq_along(ans)) {
     col     = colors.,
     outline = FALSE,
     boxwex  = .7,
-    ylim    = c(.05,.85)
+    ylim    = ylims
   )
 
-  abline(h = .5, lwd = 1, lty="dashed")  
-  # lines(
-  #   apply(dat, 2, quantile, probs=.5), type = "b", lty = 1,
-  #   lwd = 2, col = "black")
+  abline(h = abcut, lwd = 1, lty="dashed")
   
 }
 
@@ -178,7 +190,7 @@ for (i in seq_along(ans)) {
 dat <- do.call(
   cbind,
   lapply(ans_n_ann, function(i) sapply(i, function(j) 1 - j$obs) )
-)
+) # - (1 - sapply(ps_baseline, "[[", "obs"))
 
 # par(mar = par()$mar * c(1, 3, 1, 1))
 
@@ -188,19 +200,46 @@ boxplot(
   names  = lose_seq, 
   border = gray(.4),
   outline = FALSE,
-  boxwex = .7, #,
-  ylim   = c(.05,.85)
-  # ylab   = "AUC"
+  boxwex = .7, 
+  ylim   = ylims
 )
 
-# dat_quants <- apply(dat, 2, quantile, probs=.5)
-
-# abline(h = dat_quants[1], lty = 2, lwd = 2)
-abline(h = .5, lwd = 1, lty="dashed")  
-# lines(
-#   , type = "b", lty = 1,
-#   lwd = 2, col = "black")
+abline(h = abcut, lwd = 1, lty="dashed")  
 
 par(op)
 title(ylab = "Mean Absolute Error (MAE)", xlab = "Value of the parameter")
 dev.off()
+
+
+library(ggplot2)
+library(ggridges)
+
+# Creating the plot
+parameter_labels <- c(
+  psi0   = "psi[paste(0, 1)]",
+  psi1   = "psi[10]",
+  mu_d0  = "mu[d01]",
+  mu_d1  = "mu[d10]",
+  mu_s0  = "mu[s01]",
+  mu_s1  = "mu[s10]",
+  # eta0   = "eta[0]",
+  # eta1   = "eta[0]",
+  Pi     = "pi"
+)
+
+alldat$parlabs <- parameter_labels[alldat$par]
+
+alldat$parlabs <- factor(alldat$parlabs, parameter_labels)
+
+ggplot(data = alldat, mapping = aes(x=MAE, y=value)) +
+  geom_density_ridges(aes(fill = colors)) +
+  coord_flip() +
+  facet_wrap(~parlabs, ncol = 2, labeller = labeller(parlabs = label_parsed)) +
+  theme_minimal(base_family = "serif") +
+  geom_vline(xintercept = 0.5, lty=2) 
+
+theme(axis.text.x = element_text(angle=45, hjust = 1)) +
+  # Adding an horizontal line, and spliting my % of missings
+  facet_grid(Prior ~ parameter, labeller = labeller(parameter=label_parsed)) +
+  coord_flip()
+

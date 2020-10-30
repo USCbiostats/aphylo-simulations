@@ -3,7 +3,7 @@ library(data.table)
 
 files <- list.files(
   pattern = "^(mcmc|mle).+\\.rds",
-  path    = "novel-predictions",
+  path    = "parameter-estimates",
   full.names = TRUE
   )
 estimates <- lapply(files, readRDS)

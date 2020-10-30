@@ -1,7 +1,7 @@
 library(aphylo)
 library(data.table)
 
-model_aphylo <- readRDS("novel-predictions/mcmc_partially_annotated_no_prior.rds")
+model_aphylo <- readRDS("parameter-estimates/mcmc_partially_annotated_no_prior.rds")
 model_aphylo <- window(model_aphylo, start=5000)
 
 source("sifter/read_sifter.R")

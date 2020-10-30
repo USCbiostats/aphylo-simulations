@@ -1,6 +1,6 @@
 library(aphylo)
 
-estimates <- readRDS("novel-predictions/mcmc_partially_annotated_no_prior.rds")
+estimates <- readRDS("parameter-estimates/mcmc_partially_annotated_no_prior.rds")
 
 # Predictions
 divisions <- parallel::splitIndices(Ntrees(estimates), 4)
@@ -62,7 +62,7 @@ discoveries <- merge(x = dat, y = inferred, by.x = c("id", "fun"), by.y = c("id"
 which(sapply(estimates$dat, function(i) "UniProtKB=A0A0B4J2U9" %in% i$tree$tip.label))
 
 graphics.off()
-pdf("novel-predictions/proposed-annotations.pdf", width = 9, height = 9)
+pdf("parameter-estimates/proposed-annotations.pdf", width = 9, height = 9)
 plot(
   estimates, which.tree = 43,
   nsamples = 500, loo = FALSE,
@@ -140,5 +140,5 @@ discoveries[, annotation := ifelse(p0_025 > .8, "YES", "NOT")]
 
 data.table::fwrite(
   discoveries,
-  file = "novel-predictions/proposed-annotations.csv"
+  file = "parameter-estimates/proposed-annotations.csv"
   )

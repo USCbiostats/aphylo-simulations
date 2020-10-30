@@ -30,7 +30,7 @@ write.csv(data.frame(
   go=sapply(trees[classes == "biological_process"], function(i) colnames(i$tip.annotation)),
   tree=tnames[classes == "biological_process"],
   row.names = NULL
-), file = "novel-predictions-by-aspect/bio-process.csv", row.names = FALSE, quote = FALSE)
+), file = "parameter-estimates-by-aspect/bio-process.csv", row.names = FALSE, quote = FALSE)
 
 
 # Estimating empirical bayes using map
@@ -100,12 +100,12 @@ for (i in names(mcmc_per_aspect)) {
 
 saveRDS(
   mle_per_aspect,
-  "novel-predictions-by-aspect/byaspect-experimental-trees_mle.rds"
+  "parameter-estimates-by-aspect/byaspect-experimental-trees_mle.rds"
   )
 
 saveRDS(
   mcmc_per_aspect,
-  "novel-predictions-by-aspect/byaspect-experimental-trees_mcmc.rds"
+  "parameter-estimates-by-aspect/byaspect-experimental-trees_mcmc.rds"
   )
 
 
@@ -122,7 +122,7 @@ mle_per_aspect$biological_process <- aphylo_mle(
 )
 
 # How are we doing on the prediction accuracy ? --------------------------------
-joint_mcmc <- readRDS("novel-predictions/mcmc_partially_annotated_no_prior.rds")
+joint_mcmc <- readRDS("parameter-estimates/mcmc_partially_annotated_no_prior.rds")
 
 pscores_joint <- prediction_score(window(joint_mcmc, start = 5000))
 maes_joint    <- 1.0 - sapply(pscores_joint, "[[", "obs") # Getting MAEs
@@ -154,7 +154,7 @@ ggplot(data = data_4_boxplot, aes(y = MAE, x = Aspect)) +
   ylab("Mean Absolute Error (MAE)")
 
 ggsave(
-  "novel-predictions-by-aspect/byaspect-experimental-trees_mae.pdf",
+  "parameter-estimates-by-aspect/byaspect-experimental-trees_mae.pdf",
   width = 8, height = 8
   )
 
@@ -200,7 +200,7 @@ ggplot(data = data_4_coefplot, aes(y = Value, x=Aspect:Method)) +
     subtitle = "Comparing Method (Joint or per aspect + MCMC vs MLE)"
     )
   
-ggsave("novel-predictions-by-aspect/byaspect-experimental-trees_coefs.pdf", width = 8, height = 8)
+ggsave("parameter-estimates-by-aspect/byaspect-experimental-trees_coefs.pdf", width = 8, height = 8)
 
 # Tabulating the results -------------------------------------------------------
 
@@ -339,7 +339,7 @@ hierarchical_mol_fun <- aphylo_hier(
 
 saveRDS(
   hierarchical_mol_fun,
-  "novel-predictions-by-aspect/empirical_bayes_molecular_function.rds"
+  "parameter-estimates-by-aspect/empirical_bayes_molecular_function.rds"
   )
 
 k_ram2 <- fmcmc::kernel_ram(
@@ -352,7 +352,7 @@ k_ram2 <- fmcmc::kernel_ram(
   # constr = constr
 )
 hierarchical_mol_fun <- readRDS(
-  "novel-predictions-by-aspect/empirical_bayes_molecular_function.rds"
+  "parameter-estimates-by-aspect/empirical_bayes_molecular_function.rds"
   )
 
 set.seed(71623)
@@ -557,7 +557,7 @@ ans_wo_sigma <- aphylo_hier(
   hyper_params = cbind(alpha = ALPHAS, beta = BETAS)
 )
 
-saveRDS(ans_wo_sigma, "novel-predictions/empirical_bayes_without_sigma.rds")
+saveRDS(ans_wo_sigma, "parameter-estimates/empirical_bayes_without_sigma.rds")
 
 rm(ans_wo_sigma)
 gc(full = TRUE)
@@ -579,4 +579,4 @@ ans_w_sigma <- aphylo_hier(
   hyper_params = cbind(alpha = ALPHAS, beta = BETAS)
 )
 
-saveRDS(ans_w_sigma, "novel-predictions/empirical_bayes_with_sigma.rds")
+saveRDS(ans_w_sigma, "parameter-estimates/empirical_bayes_with_sigma.rds")
