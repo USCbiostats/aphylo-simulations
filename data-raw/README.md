@@ -1,7 +1,7 @@
 # Trees
 
 This data excludes the trees. Phylogenetic trees can be downloaded from PantherDB
-website. We used the 14.1 version [here](ftp://ftp.pantherdb.org/panther_library/14.1/)
+website. We used the 14.1 version here: ftp://ftp.pantherdb.org/panther_library/14.1/
 
 # Annotations
 
