@@ -11,7 +11,11 @@ using a combination between the GO dataset and the PANTHER phylogenetic trees.
 
 ## Data
 
-For this paper we used the data available in PANTHER version 15.0.
+For this paper we used the data available in PANTHER version 14.1, which can
+be downloaded [here](ftp://ftp.pantherdb.org/panther_library/14.1/).
+
+The experimental annotations were retrieved from the Gene Ontology release
+2019-02-01, which can be downloaded [here](https://zenodo.org/record/2555603).
 
 
 ## Simulation study

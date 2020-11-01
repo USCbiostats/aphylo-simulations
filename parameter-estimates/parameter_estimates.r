@@ -51,76 +51,7 @@ mcmc. <- list(
 
 set.seed(1362)
 
-# Case 1: Fully annotated trees ------------------------------------------------
-
-# # Data preprocessing
-# fully_annotated <- readRDS("../data/candidate_trees_inferred.rds")
-# fully_annotated <- do.call(c, fully_annotated)
-# fully_annotated <- unlist(lapply(fully_annotated, function(d) {
-#   lapply(1:Nann(d), function(i) d[,i])
-#   }), recursive = FALSE)
-# fully_annotated <- do.call(c, fully_annotated)
-# 
-# # Selecting using balance
-# b <- balance_ann(fully_annotated)
-# fully_annotated <- fully_annotated[(b >= quantile(b, .2))]
-# 
-# # 1.A: No prior
-# ans_mle_fully_annotated_no_prior <- aphylo_mle(
-#   fully_annotated ~ psi + mu_d + mu_s + Pi
-# )
-# 
-# message("Fully annotated: MLE No prior done.")
-# 
-# saveRDS(
-#   ans_mle_fully_annotated_no_prior,
-#   "mle_fully_annotated_no_prior.rds"
-#   )
-# 
-# set.seed(1231244)
-# ans_mcmc_fully_annotated_no_prior <- aphylo_mcmc(
-#   fully_annotated ~ psi + mu_d + mu_s + Pi,
-#   params  = gen_starts(coef(ans_mle_fully_annotated_no_prior), mcmc.$nchains),
-#   control = mcmc.
-# )
-# 
-# message("Fully annotated: MCMC No prior done.")
-# 
-# saveRDS(
-#   ans_mcmc_fully_annotated_no_prior,
-#   "mcmc_fully_annotated_no_prior.rds"
-#   )
-# # 1.B: Prior
-# ans_mle_fully_annotated_prior <- aphylo_mle(
-#   fully_annotated ~ psi + mu_d + mu_s + Pi, priors = prior.
-# )
-# 
-# message("Fully annotated: MLE prior done.")
-# 
-# saveRDS(
-#   ans_mle_fully_annotated_prior,
-#   "mle_fully_annotated_prior.rds"
-#   )
-# 
-# mcmc.$kernel <- fmcmc::kernel_ram(lb = lb., ub = ub., warmup = warmup., freq = freq.)
-# 
-# set.seed(18231)
-# ans_mcmc_fully_annotated_prior <- aphylo_mcmc(
-#   fully_annotated ~ psi + mu_d + mu_s + Pi,
-#   priors = prior.,
-#   params  = gen_starts(coef(ans_mle_fully_annotated_prior), mcmc.$nchains),
-#   control = mcmc.
-# )
-# 
-# message("Fully annotated: MCMC prior done.")
-# 
-# saveRDS(
-#   ans_mcmc_fully_annotated_prior,
-#   "mcmc_fully_annotated_prior.rds"
-#   )
-
-
-# Case 2: Partially annotated trees --------------------------------------------
+# Fitting partially annotated trees --------------------------------------------
 
 partially_annotated <- readRDS("data/candidate_trees.rds")
 partially_annotated <- do.call(c, partially_annotated)

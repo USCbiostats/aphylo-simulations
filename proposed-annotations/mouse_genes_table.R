@@ -47,3 +47,19 @@ print(
   booktabs = TRUE,
   include.rownames = FALSE
 )
+
+# Analyzing NOT annotation -----------------------------------------------------
+estimates <- readRDS("parameter-estimates/mcmc_partially_annotated_no_prior.rds")
+trees     <- readRDS("data/candidate_trees.rds")
+
+# Looking at panther family Human gene O00712 which has a zero
+p_with_zero <- predict(estimates, newdata = trees$PTHR11492)
+tree_alt <- trees$PTHR11492
+tree_alt$tip.annotation[tree_alt$tree$tip.label == "UniProtKB=O00712"] # Is a zero!
+tree_alt$tip.annotation[tree_alt$tree$tip.label == "UniProtKB=O00712"] <- 9L
+
+p_without_zero <- predict(estimates, newdata = tree_alt)
+
+# Looking at the mouse gene
+p_with_zero["UniProtKB=P97863",]
+p_without_zero["UniProtKB=P97863",]

@@ -129,6 +129,28 @@ t.test(
   paired = TRUE
 )
 
+# How about data missing ?
+mae_baseline  <- 1- sapply(ps_baseline, "[[", "obs")
+mae_drop_data <- lapply(ans_n_ann, function(a) 1 - sapply(a, "[[", "obs"))[-1]
+data_missing <- lapply(mae_drop_data, function(m) {
+  t.test(m, mae_baseline, paired = TRUE, alternative = "two.sided")
+})
+
+data_missing <- do.call(rbind, lapply(data_missing, function(d) {
+  data.frame(
+    `95% C.I.` = sprintf("[%.2f, %.2f]", d$conf.int[1], d$conf.int[2]),
+    `t-stat`   = d$statistic,
+    `p-value`  = d$p.value
+    )
+}))
+data_missing$`Prop. drop` <- lose_seq[-1]
+
+print(
+  xtable::xtable(data_missing),
+  include.rownames = FALSE,
+  booktabs = TRUE
+)
+
 # For now, saving all
 save.image("fig/sensitivity.rda", compress = FALSE)
 

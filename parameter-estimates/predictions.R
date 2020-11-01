@@ -88,12 +88,15 @@ if (FALSE) {
   # 350.452   0.000 350.982 
 }
   
-predlll <- lapply(predlll, function(p) {
-  p <- p[!is.na(p[,1]),,drop=FALSE]
+predlll <- lapply(seq_along(predlll), function(p) {
+  
+  ids <- which(!is.na(predlll[[p]][,1]))
+  ans <- predlll[[p]][ids,,drop=FALSE]
   data.table(
-    name = rownames(p),
-    term = colnames(p),
-    score = p[,1]
+    name  = rownames(ans),
+    term  = colnames(ans),
+    score = predlll[[p]][ids,1],
+    truth = estimates$dat[[p]]$tip.annotation[ids,]
   )
 })
 
@@ -104,14 +107,36 @@ families <- fread("data-raw/true_annotations.gz")
 families[, name := gsub(".+\\|UniProt", "UniProt", primary_ext_acc)]
 families[, c("accession", "qualifier", "primary_ext_acc") := NULL]
 
+# families[, ndpl := .N, keyby = .(term, name)][ndpl > 1,]
+
 predlll <- merge(
   x = predlll,
-  y = families,
+  y = unique(families),
   by.x = c("term", "name"),
   by.y = c("term", "name"),
   all.x = TRUE, all.y = FALSE
 )
 
+predlll[, n:=.N, keyby = .(term, name)][n > 1,]
+
 setnames(predlll, "substring", "panther")
 
 data.table::fwrite(predlll, file = "parameter-estimates/predictions.csv.gz", compress = "gzip")
+
+# How well it correlates as a function of # of annotations ---------------------
+maes <- predlll[, .(mae = mean(abs(score - truth)), n = .N, n0 = .N - sum(truth)), by = .(term, panther)]
+maes[,plot(n0, mae)]
+
+library(ggplot2)
+
+graphics.off()
+pdf("parameter-estimates/predictions_mae_vs_anno_count.pdf", width=6, height = 5)
+set.seed(123)
+ggplot(maes, aes(x = n, y = mae)) +
+  theme_gray() +
+  geom_jitter(aes(color = as.factor(n0)), cex = 2) +
+  labs(color = "Number of\n\"absent\"\nannotations", y = "MAE", x = "Total Number of\nannotations (log-scale)") +
+  scale_x_log10() + 
+  geom_smooth() +
+  theme_minimal(base_family = "serif") 
+dev.off()
