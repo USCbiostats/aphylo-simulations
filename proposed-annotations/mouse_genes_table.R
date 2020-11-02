@@ -1,9 +1,9 @@
 library(data.table)
 
-mouse_genes <- fread("proposed-annotations/mouse_genes_new.csv")
+mouse_genes <- fread("proposed-annotations/mouse_genes.csv")
 
 # Loading proposed predictions to be merged
-proposed <- fread("proposed-annotations/proposed-annotations_new.csv")
+proposed <- fread("proposed-annotations/proposed-annotations.csv")
 proposed[, id := gsub(".+=", "", id)]
 
 pretty_table <- merge(
@@ -21,7 +21,7 @@ pretty_table[, `Gene Symbol` := gsub("^[^\n]+\n|\n[^\n]+$", "", `Gene Symbol`)]
 pretty_table[, `PANTHER Family` := gsub(".+\\(|[:]SF[0-9]+\\).*", "", `PANTHER Family`, perl = TRUE)]
 pretty_table[, `95\\% C.I.` := sprintf("[%.2f %.2f]", p0_025, p0_975)]
 pretty_table[, c(4,6:8) := NULL]
-pretty_table[, `Qualifier` := ifelse(annotation == "YES", "", "NOT")]
+pretty_table[, `Qualifier2` := ifelse(annotation == "YES", "", "NOT")]
 
 
 
