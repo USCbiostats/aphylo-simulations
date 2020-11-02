@@ -54,6 +54,12 @@ annotations <- annotations[
     (substring == "PTHR11706" & term != "GO:0010039")  
   ]
 
+# [2020-11-02] George: Panther PTHR11492, the negative GO annotations GO:0003677
+#   are incorrect. Since the only two, we will remove them.
+annotations <- annotations[substring != "PTHR11492"]
+trees <- trees[-which(candidate_trees == "PTHR11492")]
+candidate_trees <- candidate_trees[-which(candidate_trees == "PTHR11492")]
+
 
 # Creating aphylo objets
 atrees <- vector("list", length(trees))
