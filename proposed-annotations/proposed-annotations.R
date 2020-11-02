@@ -6,7 +6,7 @@ estimates <- readRDS("parameter-estimates/mcmc_partially_annotated_no_prior.rds"
 # Predictions
 divisions <- parallel::splitIndices(Ntrees(estimates), 4)
 set.seed(123)
-cl <- parallel::makeForkCluster(4)
+cl <- parallel::makeForkCluster(10)
 ans <- parallel::parLapply(cl, divisions, function(i) {
   predict(
     object     = estimates,

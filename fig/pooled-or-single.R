@@ -10,7 +10,7 @@ files <- list.files(
 estimates <- lapply(files, readRDS)
 names(estimates) <- gsub(".+/|\\.rds$", "",files)
 
-estimates_disjoint <- readRDS("estimates_disjoint.rds")
+estimates_disjoint <- readRDS("parameter-estimates/estimates_disjoint.rds")
 
 # Making the groups match the sets
 

@@ -8,8 +8,9 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=g.vegayon@gmail.com
 
-library(slurmR)
+# library(slurmR)
 library(aphylo)
+library(parallel)
 
 # cl <- makeSlurmCluster(
 #   60L,
@@ -18,7 +19,7 @@ library(aphylo)
 #   time      = "04:00:00",
 #   `mem-per-cpu` = "2G"
 # )
-cl <- makeForkCluster(4L)
+cl <- makeForkCluster(10L)
 
 # Loading the aphylo package
 setup <- tryCatch(clusterEvalQ(cl, {
@@ -124,6 +125,6 @@ res <- parLapply(
 )
 
 
-saveRDS(res, "estimates_disjoint.rds")
+saveRDS(res, "parameter-estimates/estimates_disjoint.rds")
 stopCluster(cl)
 
