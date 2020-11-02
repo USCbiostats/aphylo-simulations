@@ -26,33 +26,44 @@ annotations <- candidate_functions[annotations, on=c("substring", "term")]
 annotations <- annotations[, list(substring, primary_ext_acc, term, qualifier)]
 annotations[, primary_ext_acc := gsub(".+UniProtKB", "UniProtKB", primary_ext_acc)]
 
+# Checking competing annotations -----------------------------------------------
+annotations[, state := fifelse(is.na(qualifier), 1L, fifelse(qualifier == "NOT", 0L, 1L))]
+
+annotations[, table(qualifier, state)]
+# qualifier2
+# qualifier             0      1
+#                       0 393285
+# COLOCALIZES_WITH      0   2694
+# CONTRIBUTES_TO        0   2379
+# NOT                3092      0
+
+annotations[, off := diff(range(state, na.rm = TRUE)), by = .(primary_ext_acc, term)]
+annotations[, table(off)]
+
+# Dropping negati
+# off
+#      0     1 
+# 401424    26
+annotations <- annotations[off == 0]
+annotations[, c("off") := NULL]
+
+# [2020-11-01] George: PTHR11706 has wrong negative annotations on GO:0010039
+#  so we will remove that family+annotation from the analysis.
+annotations <- annotations[
+  (substring != "PTHR11706" & term != "GO:0010039") |
+    (substring == "PTHR11706" & term != "GO:0010039")  
+  ]
+
+
 # Creating aphylo objets
 atrees <- vector("list", length(trees))
 for (i in seq_along(atrees)) {
   
   # Gathering the corresponding annotations
   a <- annotations[substring == candidate_trees[i]]
-  a[is.na(qualifier)  , state := 1L]
-  a[qualifier == "NOT", state := 0L] 
-  a[is.na(state)      , state := 1L]
-  
-  a <- a[, list(state = min(state)), by = c("primary_ext_acc", "term")]
-  
+  a <- a[, .(state, primary_ext_acc, term)]
   a <- dcast(a, primary_ext_acc ~ term, value.var = "state")
-  # Reshaping wide
-  # a <-
-    # a %>% 
-    # select(-substring, -qualifier) %>%
-    # # Fixing this WEIRD
-    # # A tibble: 2 x 5
-    # #   substring primary_ext_acc  term       qualifier      state
-    # #   <chr>     <chr>            <chr>      <chr>          <int>
-    # # 1 PTHR10788 UniProtKB=Q0WUI9 GO:0003825 CONTRIBUTES_TO     1
-    # # 2 PTHR10788 UniProtKB=Q0WUI9 GO:0003825 NOT                0
-    # group_by(primary_ext_acc, term) %>%
-    # summarize(state = min(state)) %>%
-    # spread(term, state)
-  
+
   # Sorting according to the ith tree
   ord <- trees[[i]]$tree$tip.label
   ord <- data.table(id = ord)
@@ -95,7 +106,7 @@ atrees <- readRDS("data/candidate_trees.rds")
 candidate_trees <- lapply(names(atrees), function(t.) {
   
   anns <- atrees[[t.]]$tip.annotation
-  anns <- apply(anns, 2, aphylo:::fast_table_using_labels, ids = c(0,1,9))
+  anns <- apply(anns + 1, 2, tabulate, nbins = 10)[c(1,2,10),]
   
   data.table(
     tree = t.,
@@ -125,33 +136,6 @@ for (i in seq_len(nrow(candidate_trees))) {
 }
 
 saveRDS(filtered_trees, file = "data/candidate_trees.rds")
-
-
-# Total annotaions
-library(ggplot2)
-
-candidate_trees[, zero_prop := zero/(zero + one + miss)]
-candidate_trees[, one_prop  := one/(zero + one + miss)]
-candidate_trees[, miss_prop := 1 - (zero_prop + one_prop)]
-
-
-candidate_trees %>%
-  ggplot(aes(x = one_prop, y = zero_prop)) +
-  # theme_minimal() +
-  # theme(panel.background = element_rect("gray")) +
-  geom_hex(bins=20) +
-  # scale_fill_distiller() +
-  theme_bw() +
-  scale_fill_viridis_c() +
-  scale_x_log10() +
-  scale_y_log10() + 
-  xlab("% annotated with 1 (log-scale)") +
-  ylab("% annotated with 0 (log-scale)") +
-  labs(fill = "Freq") +
-  geom_abline(slope = 1, intercept = 0, color="white", lwd=1) 
-
-ggsave(filename = "data/candidate_trees.pdf", width = 7,
-       height = 6)
 
 
 

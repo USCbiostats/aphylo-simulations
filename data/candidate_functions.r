@@ -1,6 +1,6 @@
 # library(data.table)
 # 
-# true_annotations <- fread("data-raw/true_annotations")
+# true_annotations <- fread("data-raw/true_annotations.gz")
 # true_annotations[, qualifier := fifelse(qualifier == "", NA_character_, qualifier)]
 # true_annotations[, present := fifelse(
 #   is.na(qualifier), TRUE, fifelse(qualifier == "NOT", FALSE, TRUE))]
@@ -15,14 +15,14 @@
 # counts <- counts[yes > 0 & no > 0]
 # counts <- counts[order(no, decreasing = TRUE)]
 # 
-# fwrte(counts, "data/candidate_functions.csv")
+# fwrite(counts, "data/candidate_functions.csv")
 
 library(dplyr)
 library(magrittr)
 
 # Reading true data
 true_annotations <- readr::read_delim(
-  file = "data-raw/true_annotations",
+  file = "data-raw/true_annotations.gz",
   delim=";", col_names = TRUE
   )
 

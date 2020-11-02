@@ -117,8 +117,6 @@ predlll <- merge(
   all.x = TRUE, all.y = FALSE
 )
 
-predlll[, n:=.N, keyby = .(term, name)][n > 1,]
-
 setnames(predlll, "substring", "panther")
 
 data.table::fwrite(predlll, file = "parameter-estimates/predictions.csv.gz", compress = "gzip")

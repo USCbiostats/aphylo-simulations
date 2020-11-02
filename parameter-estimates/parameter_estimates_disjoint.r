@@ -11,13 +11,14 @@
 library(slurmR)
 library(aphylo)
 
-cl <- makeSlurmCluster(
-  60L,
-  account   = "lc_pdt",
-  partition = "thomas",
-  time      = "04:00:00",
-  `mem-per-cpu` = "2G"
-)
+# cl <- makeSlurmCluster(
+#   60L,
+#   account   = "lc_pdt",
+#   partition = "thomas",
+#   time      = "04:00:00",
+#   `mem-per-cpu` = "2G"
+# )
+cl <- makeForkCluster(4L)
 
 # Loading the aphylo package
 setup <- tryCatch(clusterEvalQ(cl, {
