@@ -143,5 +143,5 @@ after_merge[, annotation := ifelse(p0_025 > .8, "YES", "NOT")]
 
 data.table::fwrite(
   after_merge,
-  file = "proposed-annotations/proposed-annotations_new.csv"
+  file = "proposed-annotations/proposed-annotations.csv"
   )
