@@ -5,7 +5,6 @@ mouse_genes <- fread("proposed-annotations/mouse_genes.csv")
 # Loading proposed predictions to be merged
 proposed <- fread("proposed-annotations/proposed-annotations.csv")
 proposed[, UniProtKB := gsub(".+=", "", id)]
-
 pretty_table <- merge(
   x = mouse_genes,
   y = proposed, by = "UniProtKB", all.x = TRUE, all.y = FALSE
