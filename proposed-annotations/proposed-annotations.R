@@ -39,6 +39,8 @@ dat <- lapply(ans, function(a) {
 dat <- do.call(rbind, dat)
 dat <- data.table(dat)
 
+fwrite(dat, "proposed-annotations/proposed-annotations-raw.csv.gz", compress = 'gzip')
+
 # Selecting highly accurate predictions
 dat <- dat[p0_025 > .9 | p0_975 < .1]
 
@@ -83,8 +85,8 @@ quick_go_call <- function(
   query <- paste(
     c(
       selectedFields,
-      sprintf("geneProductId=%s", geneProductId),
-      "evidenceCode=ECO:0000006,ECO:0006055&evidenceCodeUsage=descendants"
+      sprintf("geneProductId=%s", geneProductId) #,
+      # "evidenceCode=ECO:0000006,ECO:0006055&evidenceCodeUsage=descendants"
       ),
     collapse = "&"
   )
@@ -117,31 +119,121 @@ colnames(quickgo_data) <- c(
   "Annotation_Properties"
 )
 
-quickgo_data[, Go_Evidence_Code := gsub("goEvidence=([A-Z]+)", "\\1", Annotation_Properties, perl = TRUE)]
+in_go <- copy(quickgo_data)
 
-in_go <- quickgo_data[, list(DB_Object_ID, GO_ID, Qualifier, Go_Evidence_Code)]
-in_go[, quick_go := TRUE]
+in_go[, go_evidence_code := gsub("goEvidence=([A-Z]+)", "\\1", Annotation_Properties, perl = TRUE)]
+in_go[, qualifier_binary := fifelse(grepl("^NOT", Qualifier), 0L, 1L)]
 
+in_go <- in_go[, list(DB_Object_ID, GO_ID, qualifier_binary, go_evidence_code)]
+
+in_go[, go_evidence_code := paste(go_evidence_code, collapse=","), by = .(DB_Object_ID, GO_ID, qualifier_binary)]
+in_go <- unique(in_go[, .(DB_Object_ID,GO_ID,qualifier_binary,go_evidence_code)])
 discoveries[, UniProtKB := gsub(".+=", "", id)]
 
 after_merge <- merge(
-  discoveries,
-  y = in_go,
+  unique(discoveries),
+  y = unique(in_go),
   by.x = c("UniProtKB", "fun"),
   by.y = c("DB_Object_ID", "GO_ID"),
   all.x = TRUE,
   all.y = FALSE
 )
 
-after_merge[, table(fifelse(p0_025 < .5, "NOT", "YES"), Qualifier )]
+after_merge[,c("idsolo", "id", "score") := NULL]
+colnames(after_merge)[1:2] <- c("UniProtKB", "go_id")
+after_merge[, qualifier_proposed := ifelse(p0_025 > .8, "YES", "NOT")]
 
-after_merge <- unique(after_merge)
+after_merge[, table(qualifier_proposed, qualifier_binary )]
+#                    Qualifier_Binary
+# Qualifier_proposed   0   1
+#                NOT  10  15
+#                YES   0 154
 
-after_merge[,c("idsolo", "quick_go", "id", "score") := NULL]
-colnames(after_merge)[1:2] <- c("id", "go_id")
-after_merge[, annotation := ifelse(p0_025 > .8, "YES", "NOT")]
+# How many duplicated (contradicting)
+table(after_merge[, table(paste0(UniProtKB, go_id))])
+#  1   2 
+#215   5
+
+# Which are the ones contradicting
+# All the cases contradicting, we propose a negative annotation
+after_merge[, opposing := .N > 1, by = .(UniProtKB, go_id)][opposing == TRUE]
+#'       UniProtKB      go_id     p0_025     p0_500     p0_975 Qualifier_Binary Go_Evidence_Code Qualifier_proposed opposing
+#'  1: A0A0G2K1M7 GO:0005229 0.02406897 0.05078447 0.09844351                0          ISO,ISO                NOT     TRUE
+#'  2: A0A0G2K1M7 GO:0005229 0.02406897 0.05078447 0.09844351                1          ISO,ISO                NOT     TRUE
+#'  3:     F1LY14 GO:0005229 0.02393068 0.05051724 0.09813917                1          IBA,ISO                NOT     TRUE
+#'  4:     F1LY14 GO:0005229 0.02393068 0.05051724 0.09813917                0          ISO,ISO                NOT     TRUE
+#'  5:     F1LZ77 GO:0005229 0.02408001 0.05085815 0.09882460                0          ISO,ISO                NOT     TRUE
+#'  6:     F1LZ77 GO:0005229 0.02408001 0.05085815 0.09882460                1              ISO                NOT     TRUE
+#'  7:     F1M0A0 GO:0005229 0.02392630 0.05062639 0.09856256                1              IBA                NOT     TRUE
+#'  8:     F1M0A0 GO:0005229 0.02392630 0.05062639 0.09856256                0          ISO,ISO                NOT     TRUE
+#'  9:     Q76HM9 GO:0004415 0.02308549 0.05012509 0.08740170                0          ISO,ISO                NOT     TRUE
+#' 10:     Q76HM9 GO:0004415 0.02308549 0.05012509 0.08740170                1      ISO,ISO,ISS                NOT     TRUE
+
+# Experimental codes
+experimental_codes <- c(
+  "EXP",
+  "IDA",
+  "IPI",
+  "IMP",
+  "IGI",
+  "IEP",
+  "HTP",
+  "HDA",
+  "HMP",
+  "HGI",
+  "HEP"
+  )
+experimental_codes <- paste0(experimental_codes, collapse = "|")
+
+# How much agreement
+after_merge[opposing != TRUE, table(qualifier_binary, qualifier_proposed, useNA = "always")]
+
+after_merge[
+  opposing != TRUE & grepl(experimental_codes, go_evidence_code)
+  ]
+#    UniProtKB      go_id     p0_025    p0_500     p0_975 qualifier_binary        go_evidence_code qualifier_proposed opposing
+# 1:    P51656 GO:0004303 0.92328093 0.9642971 0.98287054                1 IDA,IEA,IEA,ISO,ISO,IEA                YES    FALSE
+# 2:    Q9DC29 GO:0005739 0.02185941 0.0522652 0.09772889                1     IEA,HDA,ISO,IEA,IEA                NOT    FALSE
 
 data.table::fwrite(
   after_merge,
   file = "proposed-annotations/proposed-annotations.csv"
   )
+
+# Plot -------------------------------------------------------------------------
+# after_merge <- data.table::fread("proposed-annotations/proposed-annotations.csv")
+dat <- copy(after_merge)
+dat[, novel := is.na(qualifier_binary)]
+dat[, exp_evidence := grepl(experimental_codes, go_evidence_code)]
+dat <- unique(dat[, .(UniProtKB, go_id, opposing, exp_evidence, novel)])
+
+dat[, note := fifelse(
+  exp_evidence, "EXP evidence",
+  fifelse(
+    opposing, "Dual annotation (Present/Absent)",
+    fifelse(
+      novel, "Not in GO",
+      "non-EXP evidence"
+    )
+  )
+)]
+
+library(ggplot2)    
+toplot <- dat[, .(`N Annotations` = .N), by = note]
+
+graphics.off()
+pdf("proposed-annotations/proposed-annotations.pdf", width=5, height = 3)
+ggplot(toplot, aes(x = note, y = `N Annotations`, fill=note)) +
+  geom_bar(stat = "identity") +
+  geom_text(
+    aes(label = `N Annotations`, y = `N Annotations`), vjust = -.2
+    ) + 
+  scale_fill_brewer(palette = "Dark2") +
+  labs(y = "Number of Annotations", fill = "Legend") +
+  theme_minimal(base_family = "serif") +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+dev.off()

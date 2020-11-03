@@ -1,14 +1,14 @@
 library(data.table)
 
-mouse_genes <- fread("proposed-annotations/mouse_genes_new.csv")
+mouse_genes <- fread("proposed-annotations/mouse_genes.csv")
 
 # Loading proposed predictions to be merged
-proposed <- fread("proposed-annotations/proposed-annotations_new.csv")
-proposed[, id := gsub(".+=", "", id)]
+proposed <- fread("proposed-annotations/proposed-annotations.csv")
+proposed[, UniProtKB := gsub(".+=", "", id)]
 
 pretty_table <- merge(
   x = mouse_genes,
-  y = proposed, by.x = "UniProtKB", by.y = "id", all.x = TRUE, all.y = FALSE
+  y = proposed, by = "UniProtKB", all.x = TRUE, all.y = FALSE
 )
 
 # Filtering data
@@ -21,9 +21,7 @@ pretty_table[, `Gene Symbol` := gsub("^[^\n]+\n|\n[^\n]+$", "", `Gene Symbol`)]
 pretty_table[, `PANTHER Family` := gsub(".+\\(|[:]SF[0-9]+\\).*", "", `PANTHER Family`, perl = TRUE)]
 pretty_table[, `95\\% C.I.` := sprintf("[%.2f %.2f]", p0_025, p0_975)]
 pretty_table[, c(4,6:8) := NULL]
-pretty_table[, `Qualifier` := ifelse(annotation == "YES", "", "NOT")]
-
-
+pretty_table[, `Proposed Qualifier` := ifelse(qualifier_proposed == "YES", "", "NOT")]
 
 goterms <- c(
   "GO:0004017" = "adenylate kinase activity",
@@ -37,14 +35,15 @@ goterms <- c(
   "GO:0008543" = "fibroblast growth factor receptor signaling pathway",
   "GO:0004867" = "serine-type endopeptidase inhibitor activity",
   "GO:0008131" = "primary amine oxidase activity",
-  "GO:0006888" = "endoplasmic reticulum to Golgi vesicle-mediated transport"
-  
+  "GO:0006888" = "endoplasmic reticulum to Golgi vesicle-mediated transport",
+  "GO:0004713" = "protein tyrosine kinase activity",
+  "GO:0005739" = "mitochondrion"
   
 )
 
 pretty_table[, Annotation := sprintf("%s (%s)",goterms[go_id], go_id)]
 
-pretty_table[, c("go_id", "UniProtKB", "annotation", "PANTHER Family") := NULL]
+pretty_table[, c("go_id", "qualifier_proposed", "PANTHER Family") := NULL]
 
 pretty_table[, Evidence:= ""]
 
