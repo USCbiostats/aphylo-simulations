@@ -6,9 +6,9 @@ estimates <- readRDS("parameter-estimates/mcmc_partially_annotated_no_prior.rds"
 types <- sapply(estimates$dat, function(d) {
   
   # mean(1 - d$node.type)
-  aphylo:::fast_table_using_labels(
-    d$node.type,
-    c(0, 1)
+  tabulate(
+    d$node.type + 1,
+    2
   )
   
 })
@@ -59,10 +59,10 @@ dev.off()
 # Extracting the annotation types ----------------------------------------------
 labels <- sapply(estimates$dat, function(d) {
   structure(
-    aphylo:::fast_table_using_labels(
-      d$tip.annotation,
-      c(0, 1, 9)
-      ),
+    tabulate(
+      d$tip.annotation + 1,
+      10
+      )[c(1,2,10)],
     names = c("0", "1", "9")
   )
 })

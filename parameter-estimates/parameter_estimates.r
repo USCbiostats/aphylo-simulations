@@ -43,7 +43,7 @@ mcmc. <- list(
   nchains      = 4L,
   multicore    = FALSE, 
   burnin       = 0L,
-  nsteps       = 100000L,
+  nsteps       = 5000L,
   conv_checker = NULL,
   kernel       = fmcmc::kernel_ram(lb = lb., ub = ub., warmup = warmup., freq = freq.),
   thin         = 10L
@@ -69,11 +69,11 @@ message("Partially annotated: MLE No prior done.")
 
 saveRDS(
   ans_mle_partially_annotated_no_prior,
-  "mle_partially_annotated_no_prior.rds"
+  "parameter-estimates/mle_partially_annotated_no_prior.rds"
   )
 
 # In this case we don't need that many samples, this converges faster
-mcmc.$nsteps <- 10000
+mcmc.$nsteps <- 5000L
 
 set.seed(173812)
 mcmc.$kernel <- fmcmc::kernel_adapt(lb = lb., ub = ub., warmup = warmup., freq = 1L)
@@ -87,7 +87,7 @@ message("Partially annotated: MCMC No prior done.")
 
 saveRDS(
   ans_mcmc_partially_annotated_no_prior,
-  "mcmc_partially_annotated_no_prior.rds"
+  "parameter-estimates/mcmc_partially_annotated_no_prior.rds"
   )
 # 1.B: Prior
 ans_mle_partially_annotated_prior <- aphylo_mle(
@@ -98,7 +98,7 @@ message("Partially annotated: MLE prior done.")
 
 saveRDS(
   ans_mle_partially_annotated_prior,
-  "mle_partially_annotated_prior.rds"
+  "parameter-estimates/mle_partially_annotated_prior.rds"
   )
 
 set.seed(8812831)
@@ -114,7 +114,7 @@ message("Partially annotated: MCMC prior done.")
 
 saveRDS(
   ans_mcmc_partially_annotated_prior,
-  "mcmc_partially_annotated_prior.rds"
+  "parameter-estimates/mcmc_partially_annotated_prior.rds"
   )
 
 

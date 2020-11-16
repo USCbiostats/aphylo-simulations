@@ -1,31 +1,31 @@
-UniProtKB,Gene Name Gene Symbol,PANTHER Family/Subfamily ,PANTHER Protein Class
+UniProtKB,Gene Name Gene Symbol,PANTHER Family/Subfamily,PANTHER Protein Class
 Q9WTP7,"GTP:AMP phosphotransferase AK3, mitochondrial
 Ak3
 ortholog","GTP:AMP PHOSPHOTRANSFERASE AK3, MITOCHONDRIAL (PTHR23359:SF68)",nucleotide kinase
-Q3TRM8,"Hexokinase-3
-Hk3
-ortholog",HEXOKINASE-3 (PTHR19443:SF1),-
-P97863,"Nuclear factor 1 B-type
-Nfib
-ortholog",NUCLEAR FACTOR 1 B-TYPE (PTHR11492:SF4),DNA-binding transcription factor
+Q8CBF3,"Ephrin type-B receptor 1
+Ephb1
+ortholog",EPHRIN TYPE-B RECEPTOR 1 (PTHR24416:SF173),-
+Q9DC29,"ATP-binding cassette sub-family B member 6, mitochondrial
+Abcb6
+ortholog","ATP-BINDING CASSETTE SUB-FAMILY B MEMBER 6, MITOCHONDRIAL (PTHR24221:SF503)",ATP-binding cassette (ABC) transporter
 P51656,"Estradiol 17-beta-dehydrogenase 1
 Hsd17b1
 ortholog",ESTRADIOL 17-BETA-DEHYDROGENASE 1 (PTHR43391:SF15),dehydrogenase
 O35425,"Bcl-2-related ovarian killer protein
 Bok
 ortholog",BCL-2-RELATED OVARIAN KILLER PROTEIN (PTHR11256:SF48),-
-P17892,"Pancreatic lipase-related protein 2
-Pnliprp2
-ortholog",PANCREATIC LIPASE-RELATED PROTEIN 2 (PTHR11610:SF147),lipase
 Q9WTP6,"Adenylate kinase 2, mitochondrial
 Ak2
 ortholog","ADENYLATE KINASE 2, MITOCHONDRIAL (PTHR23359:SF22)",nucleotide kinase
-Q9WVG5,"Endothelial lipase
-Lipg
-ortholog",ENDOTHELIAL LIPASE (PTHR11610:SF13),lipase
+O70423,"Membrane primary amine oxidase
+Aoc3
+ortholog",MEMBRANE PRIMARY AMINE OXIDASE (PTHR10638:SF23),-
+O35684,"Neuroserpin
+Serpini1
+ortholog",NEUROSERPIN (PTHR11461:SF50),protease inhibitor
 Q5BKQ4,"Inactive pancreatic lipase-related protein 1
 Pnliprp1
 ortholog",INACTIVE PANCREATIC LIPASE-RELATED PROTEIN 1 (PTHR11610:SF108),lipase
-P49282,"Natural resistance-associated macrophage protein 2
-Slc11a2
-ortholog",NATURAL RESISTANCE-ASSOCIATED MACROPHAGE PROTEIN 2 (PTHR11706:SF40),primary active transporter
+Q61247,"Alpha-2-antiplasmin
+Serpinf2
+ortholog",ALPHA-2-ANTIPLASMIN (PTHR11461:SF20),protease inhibitor

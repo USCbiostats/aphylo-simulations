@@ -4,11 +4,15 @@ library(data.table)
 # Listing the mcmc files
 files <- list.files(
   pattern = "^(mcmc|mle).+\\.rds",
-  # path    = "parameter-estimates",
+  path    = "parameter-estimates",
   full.names = TRUE
 )
 estimates <- lapply(files, readRDS)
+names(estimates) <- gsub(".+/|\\.rds$", "",files)
+
 estimates_disjoint <- readRDS("parameter-estimates/estimates_disjoint.rds")
+
+# Making the groups match the sets
 
 
 # Getting the tree names -------------------------------------------------------
@@ -18,7 +22,7 @@ tree_names <- sapply(estimates[[4]]$dat, function(i) {
 })
 tree_names <- data.table(UniProtKB = tree_names, ord = 1:length(tree_names))
 
-annotations         <- data.table::fread("data-raw/true_annotations")
+annotations <- data.table::fread("data-raw/true_annotations.gz")
 annotations[, UniProtKB := gsub(".+UniProtKB", "UniProtKB", primary_ext_acc)]
 annotations <- subset(annotations, select = c(substring, UniProtKB))
 annotations <- unique(annotations)

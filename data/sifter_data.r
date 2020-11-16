@@ -140,22 +140,3 @@ which(!names(fasta) %in% pfamscan_results$seq$name)
 # [1]   53  566  605  606  608  924  925  926  927  928 1066 1067 1070 1071 1072 1073 1074 1075 1076 1077 1078 1079
 
 saveRDS(pfamscan_results, "data/sifter_data_pfamscan.rds")
-# 
-# 
-# # Preparing the command
-# sprintf(
-#   "python sifter_find_families.py -p %s %s",
-#   paste(names(sample_trees),collapse=","),
-#   "../aphylo_family_list.txt"
-#   )
-# 
-# sprintf(
-#   "python sifter_gather_family_data.py -i %s %s" ,
-#   "../aphylo/family_list.txt",
-#   "../aphylo/fam_data"
-# )
-# 
-# 
-# 
-# sample_trees$Q07813$pfam$entry
-

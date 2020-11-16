@@ -24,7 +24,11 @@ if (FALSE) {
   
   # How many predictions?
   predictions_all <- do.call(rbind, predictions_all)
-  
+  str(predictions_all[grepl("^UniP", rownames(predictions_all)),,drop=FALSE])
+  # num [1:82808, 1] 0.54304 0.57064 0.57064 0.5573 0.00368 ...
+  # - attr(*, "dimnames")=List of 2
+  # ..$ : chr [1:82808] "UniProtKB=F7DIZ7" "UniProtKB=H2M9L6" "UniProtKB=F1QVG0" "UniProtKB=W5M652" ...
+  # ..$ : chr "GO:0005229"
 }
 
 # ------------------------------------------------------------------------------
@@ -116,8 +120,6 @@ predlll <- merge(
   by.y = c("term", "name"),
   all.x = TRUE, all.y = FALSE
 )
-
-predlll[, n:=.N, keyby = .(term, name)][n > 1,]
 
 setnames(predlll, "substring", "panther")
 
