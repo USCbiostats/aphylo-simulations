@@ -7,6 +7,7 @@ files <- list.files(
   full.names = TRUE
   )
 estimates <- lapply(files, readRDS)
+names(estimates) <- gsub(".+estimates/|\\.rds$", "", files)
 
 # Getting the tree names -------------------------------------------------------
 tree_names <- sapply(estimates[[4]]$dat, function(i) {
@@ -67,9 +68,9 @@ View(cbind(
 
 op0 <- par(mai = rep(0, 4))
 graphics.off()
-pdf("featured-trees/example-trees-good1.pdf", width = 9, height = 6)
+pdf("fig/example-trees-good1.pdf", width = 9, height = 6)
 plot(
-  x          = estimates[[4]],
+  x          = estimates$mcmc_partially_annotated_no_prior,
   which.tree = 11,
   prop       = .2,
   cex        = .3,
@@ -86,9 +87,9 @@ op <- par(xpd = NA)
 
 # Example 1 --------------------------------------------------------------------
 graphics.off()
-svg("featured-trees/example-trees-good1-loo.svg", width = 6, height = 6)
+svg("fig/example-trees-good1-loo.svg", width = 6, height = 6)
 plot(
-  x          = estimates[[4]],
+  x          = estimates$mcmc_partially_annotated_no_prior,
   which.tree = 11,
   nsamples   = 500,
   prop       = .2,
@@ -105,9 +106,9 @@ dev.off()
 
 # Example 2 --------------------------------------------------------------------
 graphics.off()
-svg("featured-trees/example-trees-bad1-loo.svg", width = 6, height = 6)
+svg("fig/example-trees-bad1-loo.svg", width = 6, height = 6)
 plot(
-  x          = estimates[[3]],
+  x          = estimates$mcmc_partially_annotated_no_prior,
   which.tree = 51, #124,
   nsamples   = 10,
   prop       = .2,
