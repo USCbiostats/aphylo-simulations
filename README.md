@@ -18,7 +18,20 @@ set of experimental annotations from GOA.
 the panther trees, GOA annotations, and combining them into `aphylo_tree`
 objects. This also contains the resulting data.
 
-**featured-trees** Contains the code used to 
+**fig** Most figures of the paper, including the code used to generate the two trees featured
+in the paper (the low and high MAE).
+
+**parameter-estimates** All the code used to fit the pooled models, including the
+obtained paramter estimates.
+
+**proposed-annotations** Code used to generate annotation proposals on genes
+with no experimental annotations. The folder includes the actual table
+with proposed annotations.
+
+**sifter** Code used to analyze SIFTER data.
+
+**simulations** Code to generate the large simulation study in which we analyze
+the properties of MCMC and MLE estimates.
 
 ## Data
 
