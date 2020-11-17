@@ -80,7 +80,7 @@ cols <- adjustcolor(c(
 
 names(cols) <- c("MCMC (Unif Prior)", "MCMC (Beta Prior)", "MLE", "MAP (Beta Prior)")
 graphics.off()
-pdf("parameter-estimates/summary_table_roc.pdf", width = 6, height = 6)
+pdf("fig/summary_table_roc.pdf", width = 6, height = 6)
 plot(aucs[[1]], pch = 1, lwd = 1.5, type = "p")
 with(aucs[[2]], lines(x = fpr, y = tpr, pch=2, lwd=1.5, col=cols[2], type = "p"))
 with(aucs[[3]], lines(x = fpr, y = tpr, pch=3, lwd=1.5, col=cols[3], type = "p"))
