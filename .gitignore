@@ -9,6 +9,7 @@
 *.pdf
 _rslurm*
 *_cache
+*.txt
 
 *.snm
 *.nav
@@ -22,4 +23,7 @@ _rslurm*
 *.gz
 
 data-raw/
+sifter/
+
+*.svg
 
