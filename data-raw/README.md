@@ -1,7 +1,7 @@
 # Trees
 
 For this paper we used the data available in PANTHER version 15.0, which can
-be downloaded [here](ftp://ftp.pantherdb.org/panther_library/15.0/).
+be downloaded here: ftp://ftp.pantherdb.org/panther_library/15.0/
 
 # Annotations
 
